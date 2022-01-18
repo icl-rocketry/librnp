@@ -53,6 +53,17 @@ void RnpNetworkManager::loadFromJson()
 void RnpNetworkManager::saveToNVS() 
 {
     //serialize to json then save
+    //stuff to save
+    /**
+     * current address
+     * node type
+     * no route action
+     * route gen enabled
+     * 
+     * routing table
+     * 
+     * 
+     */
 }
 
 void RnpNetworkManager::loadFromNVS() 
@@ -92,6 +103,12 @@ void RnpNetworkManager::sendPacket(RnpPacket& packet){
             {
                 return;
             }
+        }
+    }
+    //determine if we are forwarding the packet
+    if (packet.header.source != _currentAddress){
+        if (packet.header.src_iface == route.value().iface){
+            return; //avoid forwarding a packet over the interface it was received to prevent packet duplication
         }
     }
     sendByRoute(route.value(),packet);
