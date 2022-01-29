@@ -209,6 +209,10 @@ const RnpInterfaceInfo* RnpNetworkManager::getInterfaceInfo(const uint8_t ifaceI
 };
 
 void RnpNetworkManager::registerService(const uint8_t serviceID, PacketHandlerCb packetHandler){
+    if (serviceID == 0){ // prevent users adding a servivce at id 0
+        log("[E] registerService-> Illegal Service ID provided!");
+        return;
+    }
     if (serviceID >= serviceLookup.size()){
         serviceLookup.resize(serviceID+1);
     }
@@ -216,6 +220,10 @@ void RnpNetworkManager::registerService(const uint8_t serviceID, PacketHandlerCb
 }
 
 void RnpNetworkManager::unregisterService(const uint8_t serviceID){
+    if (serviceID == 0){
+        log("[E] unregisterService-> Illegal Service ID provided!");
+        return;
+    }
     if (serviceID >= serviceLookup.size()){
         log("[E] service ID out of range");
         return; // out of bounds
@@ -272,6 +280,11 @@ void RnpNetworkManager::routePackets(){
     }
 
     uint8_t packetService = packet_ptr->header.destination_service;
+    if (packetService == static_cast<uint8_t>(DEFAULT_SERVICES::NOSERVICE)){
+        //blackhole -> serviceID 0 is reserved 
+        log("[E] routePackets-> dumping packet with serviceID 0!");
+        return;
+    }
     if (packetService == static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN)){ // handle network management packets
         NetManHandler(std::move(packet_ptr));
     }else{

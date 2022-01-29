@@ -31,12 +31,9 @@ enum class NODETYPE : uint8_t{
 };
 
 enum class DEFAULT_SERVICES:uint8_t{
-    NOSERVICE = 0, //if not serivce is specified
-    NETMAN = 1,
-    COMMAND = 2,
-    TELEMETRY = 3,
-    PYRO = 4,
-    ENGINE = 5
+    NOSERVICE = 0, //Noservice is reserved so that nodes on RNP can send packets to the the command service on the groundstation without being forwarded to connected ip clients. This is a special case, if noservice is specifed addressed to any other node, the packet will be dumped!
+    NETMAN = 1, // Netmanager service
+    COMMAND = 2 // Command Processor Service
 };
 
 
