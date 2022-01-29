@@ -264,6 +264,7 @@ void RnpNetworkManager::routePackets(){
     }
 
     if ((packet_ptr->header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG)) && (packet_ptr->header.destination == static_cast<uint8_t>(DEFAULT_ADDRESS::NOADDRESS))){
+        //need to dump any packets which arent addresed to either no address (0) or the current address
         packet_ptr->header.destination = _currentAddress; // process packets addressed to no address on the debug interface as local packets
        
     }
