@@ -1,3 +1,5 @@
+
+
 #include <memory>
 #include <vector>
 #include <optional>
@@ -15,19 +17,29 @@
     #include <Arduino.h>
 #endif
 
+
+
 RnpNetworkManager::RnpNetworkManager(uint8_t address, NODETYPE nodeType, bool enableLogging):
 routingtable(1),
 serviceLookup(1), // initalize single element for NETMAN service
-_currentAddress(address),
-_nodeType(nodeType),
+_config({address,nodeType,NOROUTE_ACTION::DUMP,{},false}),
 _loggingEnabled(enableLogging)
 {
     addInterface(&lo); // add loopback interface
     generateDefaultRoutes();
 };
 
-void RnpNetworkManager::setup()
-{};
+
+RnpNetworkManager::RnpNetworkManager(RnpNetworkManagerConfig config, bool enableLogging):
+routingtable(1),
+serviceLookup(1), // initalize single element for NETMAN service
+_config(config),
+_loggingEnabled(enableLogging)
+{
+    addInterface(&lo); // add loopback interface
+    generateDefaultRoutes();
+};
+
 
 void RnpNetworkManager::update(){
     for (auto iface_ptr : ifaceList){
@@ -38,39 +50,32 @@ void RnpNetworkManager::update(){
     routePackets();
 }
 
+
 void RnpNetworkManager::reset() 
 {
     routingtable = _basetable; // replace the current routing table with the original routing tbale loaded 
     generateDefaultRoutes();
 }
 
-void RnpNetworkManager::loadFromJson() 
-{
-    //extract network manager parametrs from json then pass json to routing table to load
-    _basetable.loadJson();
-}
 
-void RnpNetworkManager::saveToNVS() 
-{
-    //serialize to json then save
-    //stuff to save
-    /**
-     * current address
-     * node type
-     * no route action
-     * route gen enabled
-     * 
-     * routing table
-     * 
-     * 
-     */
-}
-
-void RnpNetworkManager::loadFromNVS() 
-{
-    //extract network manager parametrs from json then pass json to routing table to load
-    _basetable.loadJson();
+void RnpNetworkManager::reconfigure(RnpNetworkManagerConfig config,RoutingTable newroutingtable){
+    setRoutingTable(newroutingtable); // load new routing table first so that if there is a mismatch between the new config address and the routing table, we stil can communicate with the node
+    loadconfig(config);
 };
+
+
+void RnpNetworkManager::loadconfig(RnpNetworkManagerConfig config){
+    setAddress(config.currentAddress); // call set address to clean up old address loopback route
+    _config = config; 
+};
+
+
+void RnpNetworkManager::setRoutingTable(RoutingTable newroutingtable){
+    routingtable = newroutingtable; //keep base routing table intact incase this screws the config
+    generateDefaultRoutes(); // ensure the default routes always exist so we can always communicate with the node
+};
+
+
 
 void RnpNetworkManager::sendPacket(RnpPacket& packet){
 
@@ -81,17 +86,17 @@ void RnpNetworkManager::sendPacket(RnpPacket& packet){
     std::optional<Route> route = routingtable.getRoute(destination);
     if (!route){
         //bad entry / no entry returned
-        switch (_noRouteAction){
+        switch (_config.noRouteAction){
             case NOROUTE_ACTION::DUMP:
             {
                 return;
             }
             case NOROUTE_ACTION::BROADCAST:
             {
-                if (_broadcastList.size() == 0){
+                if (_config.broadcastList.size() == 0){
                     return;
                 }
-                for (uint8_t ifaceID : _broadcastList){
+                for (uint8_t ifaceID : _config.broadcastList){
                     if ((ifaceID  == packet.header.src_iface) || (ifaceID == static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK))){
                         continue; // dont broadcast packet over the interface it was received
                     }
@@ -106,7 +111,7 @@ void RnpNetworkManager::sendPacket(RnpPacket& packet){
         }
     }
     //determine if we are forwarding the packet
-    if (packet.header.source != _currentAddress){
+    if (packet.header.source != _config.currentAddress){
         if (packet.header.src_iface == route.value().iface){
             return; //avoid forwarding a packet over the interface it was received to prevent packet duplication
         }
@@ -115,11 +120,12 @@ void RnpNetworkManager::sendPacket(RnpPacket& packet){
    
 }
 
+
 void RnpNetworkManager::sendByRoute(const Route& route, RnpPacket& packet) 
 {
     //get the corresponding interface index
     uint8_t ifaceID = route.iface;
-    if (ifaceID == static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK) && (packet.header.destination != _currentAddress)){
+    if (ifaceID == static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK) && (packet.header.destination != _config.currentAddress)){
         //bad route
         log("[E] bad route, dest and curr address dont match when sending over loopback");
         return;
@@ -136,22 +142,25 @@ void RnpNetworkManager::sendByRoute(const Route& route, RnpPacket& packet)
     iface_ptr.value()->sendPacket(packet);
 };
 
+
 void RnpNetworkManager::setAddress(uint8_t address) 
 {
 
-    auto currentRoute = routingtable.getRoute(_currentAddress);
+    auto currentRoute = routingtable.getRoute(_config.currentAddress);
     if (currentRoute && (currentRoute.value().iface == static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK))){
-        routingtable.deleteRoute(_currentAddress); // ensure we dont delete a new route if this is called after a new routing table is assigned
+        routingtable.deleteRoute(_config.currentAddress); // ensure we dont delete a new route if this is called after a new routing table is assigned
     }
-    _currentAddress = address;
+    _config.currentAddress = address;
     generateDefaultRoutes();
    
 };
 
+
 void RnpNetworkManager::setNodeType(NODETYPE nodeType) 
 {
-    _nodeType = nodeType;
+    _config.nodeType = nodeType;
 };
+
 
 void RnpNetworkManager::addInterface(RnpInterface* iface){
     uint8_t ifaceID = iface->getID();
@@ -170,6 +179,7 @@ void RnpNetworkManager::addInterface(RnpInterface* iface){
     iface->setPacketBuffer(&packetBuffer);
 };
 
+
 std::optional<RnpInterface*> RnpNetworkManager::getInterface(const uint8_t ifaceID){
     if (ifaceID >= ifaceList.size()){
         log("[E] iface id out of range");
@@ -181,6 +191,7 @@ std::optional<RnpInterface*> RnpNetworkManager::getInterface(const uint8_t iface
     }
     return {iface_ptr};
 };
+
 
 void RnpNetworkManager::removeInterface(const uint8_t ifaceID){
     if (ifaceID >= ifaceList.size()){
@@ -195,10 +206,12 @@ void RnpNetworkManager::removeInterface(const uint8_t ifaceID){
     }
 };
 
+
 void RnpNetworkManager::removeInterface(RnpInterface* iface){
     uint8_t ifaceID = iface->getID();
     removeInterface(ifaceID);
 };
+
 
 const RnpInterfaceInfo* RnpNetworkManager::getInterfaceInfo(const uint8_t ifaceID){
     auto iface_ptr = getInterface(ifaceID);
@@ -207,6 +220,7 @@ const RnpInterfaceInfo* RnpNetworkManager::getInterfaceInfo(const uint8_t ifaceI
     }
     return iface_ptr.value()->getInfo();
 };
+
 
 void RnpNetworkManager::registerService(const uint8_t serviceID, PacketHandlerCb packetHandler){
     if (serviceID == 0){ // prevent users adding a servivce at id 0
@@ -218,6 +232,7 @@ void RnpNetworkManager::registerService(const uint8_t serviceID, PacketHandlerCb
     }
     serviceLookup.at(serviceID) = packetHandler;
 }
+
 
 void RnpNetworkManager::unregisterService(const uint8_t serviceID){
     if (serviceID == 0){
@@ -234,15 +249,17 @@ void RnpNetworkManager::unregisterService(const uint8_t serviceID){
     }
 }
 
+
 void RnpNetworkManager::setNoRouteAction(const NOROUTE_ACTION action,const std::vector<uint8_t> ifaces) 
 {
-    _noRouteAction = action;
-    _broadcastList = ifaces;
+    _config.noRouteAction = action;
+    _config.broadcastList = ifaces;
 }
+
 
 void RnpNetworkManager::generateDefaultRoutes() 
 {
-    routingtable.setRoute(_currentAddress,Route{0,1,{}}); // loopback route
+    routingtable.setRoute(_config.currentAddress,Route{0,1,{}}); // loopback route
     routingtable.setRoute(static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG),Route{1,1,{}}); // debug port route
 };
 
@@ -252,10 +269,10 @@ void RnpNetworkManager::routePackets(){
         return;
     }
     //process packets on buffer one at a time 
-    packetptr_t packet_ptr = std::move(packetBuffer.front());
+    packetptr_t packet_ptr = std::move(packetBuffer.front()); //packet_ptr is now "owned" within the scope of this function so will be deleted as soon as this goes out of scope
     packetBuffer.pop(); // remove element at front
 
-    if (_routeGenEnabled){//route gen only adds a new route if it didnt previously exist
+    if (_config.routeGenEnabled){//route gen only adds a new route if it didnt previously exist
         std::optional<Route> currentRoute = routingtable.getRoute(packet_ptr->header.source); // check if a route exists to the source node
         if (!currentRoute){
             Route newroute{packet_ptr->header.src_iface,packet_ptr->header.hops,packet_ptr->header.lladdress};
@@ -265,31 +282,35 @@ void RnpNetworkManager::routePackets(){
 
     if ((packet_ptr->header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG)) && (packet_ptr->header.destination == static_cast<uint8_t>(DEFAULT_ADDRESS::NOADDRESS))){
         //need to dump any packets which arent addresed to either no address (0) or the current address
-        packet_ptr->header.destination = _currentAddress; // process packets addressed to no address on the debug interface as local packets
+        packet_ptr->header.destination = _config.currentAddress; // process packets addressed to no address on the debug interface as local packets
        
     }
 
-    if (packet_ptr->header.destination != _currentAddress){
-        if (_nodeType == NODETYPE::HUB){
-            sendPacket(*packet_ptr);
-        }
+    if (packet_ptr->header.destination != _config.currentAddress){
+        forwardPacket(*packet_ptr);
         return;
     }
 
-    if ((packet_ptr->header.source == _currentAddress) && (packet_ptr->header.src_iface != static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK))){ //this can happend if a packet is badly addressed and/or a routing table is bad
+    if ((packet_ptr->header.source == _config.currentAddress) && (packet_ptr->header.src_iface != static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK))){ //this can happend if a packet is badly addressed and/or a routing table is bad
         return; 
     }
 
     uint8_t packetService = packet_ptr->header.destination_service;
-    if (packetService == static_cast<uint8_t>(DEFAULT_SERVICES::NOSERVICE)){
-        //blackhole -> serviceID 0 is reserved 
-        log("[E] routePackets-> dumping packet with serviceID 0!");
-        return;
-    }
-    if (packetService == static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN)){ // handle network management packets
-        NetManHandler(std::move(packet_ptr));
-    }else{
-        if (packetService >= serviceLookup.size()){
+    switch(packetService){
+        case static_cast<uint8_t>(DEFAULT_SERVICES::NOSERVICE): // service 0 debug passthrough -> forwards the packet over the debug interface 
+        {
+            packet_ptr->header.destination = static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG);
+            sendPacket(*packet_ptr);
+            break;
+        }
+        case static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN): // serivce 1 network manager service 
+        {
+             NetManHandler(std::move(packet_ptr));
+             break;
+        }
+        default: // pass packet to service handler 
+        {
+            if (packetService >= serviceLookup.size()){
                 //out of bounds access
                 return;
             }
@@ -299,9 +320,12 @@ void RnpNetworkManager::routePackets(){
                 return;
             }
             callback(std::move(packet_ptr)); // no copy
+            break;
+        }
     }
 
 };
+
 
 void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
     switch(static_cast<NETMAN_TYPES>(packet_ptr->header.type)){
@@ -341,7 +365,14 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
         }
         case NETMAN_TYPES::SAVE_CONF:
         {
-            saveToNVS();
+            if (_saveConfigImpl)
+            {
+                 log("Configuration Saved!");
+                _saveConfigImpl(_config);
+            }else{
+                log("No Save Config Implementation Provided - Not Saved!");
+            }
+            
             break;
         }
         case NETMAN_TYPES::RESET_NETMAN:
@@ -355,6 +386,20 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
         }
     }
 };
+
+
+void RnpNetworkManager::forwardPacket(RnpPacket& packet){
+    if (_config.nodeType != NODETYPE::HUB){return;}; // only forward if node is hub
+
+
+    if (packet.header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG) 
+        && packet.header.source_service == static_cast<uint8_t>(DEFAULT_SERVICES::NOSERVICE))
+    { 
+        packet.header.source == _config.currentAddress;
+    }
+
+    sendPacket(packet);
+}
 
 
 void RnpNetworkManager::log(const std::string& msg){

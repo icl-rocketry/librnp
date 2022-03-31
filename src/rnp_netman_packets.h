@@ -13,8 +13,11 @@ enum class NETMAN_TYPES:uint8_t{
     PING_RES = 2,
     SET_ADDRESS = 3,
     SET_ROUTE = 4,
-    SAVE_CONF = 5, // this may benefit from a securtiy key
-    RESET_NETMAN = 6 // ^^
+    SET_TYPE = 5,
+    SET_NOROUTEACTION = 6,
+    SET_ROUTEGEN = 7,
+    SAVE_CONF = 8, // this may benefit from a securtiy key
+    RESET_NETMAN = 9 // ^^
 
 };
 

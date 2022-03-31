@@ -25,27 +25,70 @@ using PacketHandlerCb = std::function<void(packetptr_t)>;
 using LogCb_t = std::function<void(const std::string&)>;
 
 
+
 enum class NODETYPE : uint8_t{
             LEAF=0, // only accepts packets addressed to this node and dumps any others. 
             HUB=1, // accepts all packets and forwards to the correct interface (promiscous mode)
 };
 
+enum class NOROUTE_ACTION:uint8_t{
+            DUMP=0, /*! Dumps the packet !*/
+            BROADCAST=1 /*! broadcast the packet to the specifed interfaces NB careful of packet duplication -> no de-duplication service has been written yet !*/
+};
+
 enum class DEFAULT_SERVICES:uint8_t{
-    NOSERVICE = 0, //Noservice is reserved so that nodes on RNP can send packets to the the command service on the groundstation without being forwarded to connected ip clients. This is a special case, if noservice is specifed addressed to any other node, the packet will be dumped!
+    /**
+     * @brief is reserved for 'special' uses.
+     * On the Groundstation, nodes on RNP can send packets to the the command service on the groundstation without being forwarded to connected ip clients. 
+     * NOSERVICE on a node which is a hub also allows packets to be forwarded to the debug interface allowing the debug interface to
+     * communicate to any node on the network. This only happens if the packet is addressed to a node
+     * 
+     * 
+     * 
+     */
+    NOSERVICE = 0, //Noservice 
     NETMAN = 1, // Netmanager service
     COMMAND = 2 // Command Processor Service
 };
 
+struct RnpNetworkManagerConfig{
+    uint8_t currentAddress;
+    NODETYPE nodeType;
+    NOROUTE_ACTION noRouteAction;
+    std::vector<uint8_t> broadcastList;
+    bool routeGenEnabled;
+};
+
+using SaveConfigImpl = std::function<void(RnpNetworkManagerConfig config)>;
+
 
 class RnpNetworkManager {
+
     public:
-        RnpNetworkManager(uint8_t address = 0, NODETYPE nodeType = NODETYPE::LEAF,bool enableLogging = false);
-        
         /**
-         * @brief Runs default setup -> currently nothing
+         * @brief Construct a new Rnp Network Manager object, provides a default constructor to set default settings
          * 
+         * @param address 
+         * @param nodeType 
+         * @param enableLogging 
          */
-        void setup(); 
+        RnpNetworkManager(uint8_t address = 0, NODETYPE nodeType = NODETYPE::LEAF,bool enableLogging = false);
+        /**
+         * @brief Construct a new Rnp Network Manager object using a RnpNetworkManagerConfig struct
+         * 
+         * @param config 
+         * @param enableLogging 
+         */
+        RnpNetworkManager(RnpNetworkManagerConfig config, bool enableLogging = false);
+
+        /**
+         * @brief reconfigure networkmanager 
+         * 
+         * @param config 
+         * @param newroutingtable 
+         */
+        void reconfigure(RnpNetworkManagerConfig config,RoutingTable newroutingtable);
+
         /**
          * @brief Runs update routine on all interfaces in the iflist, also calls routePacket command to process any received packets.
          * 
@@ -58,21 +101,20 @@ class RnpNetworkManager {
         void reset(); //reset routing table to the loaded routing table
 
         /**
-         * @brief Loads config from a json string
+         *
+         * @brief Load network manager config taking care to clean up old address entry in routing table
          * 
+         * @param config 
          */
-        void loadFromJson();
+        void loadconfig(RnpNetworkManagerConfig config);
+        
         /**
-         * @brief saves network configuration to Non Volatile Storage (esp32 specific),
-         * configruation is stored as a json string
+         * @brief Set a new routingtable
          * 
+         * @param newroutingtable 
          */
-        void saveToNVS();//saves network config to nvs
-        /**
-         * @brief Loads network configruation from Non Volatile Storage
-         * 
-         */
-        void loadFromNVS();//loads network config from nvs
+        void setRoutingTable(RoutingTable newroutingtable);
+
 
         /**
          * @brief Sends a RnpPacket. All routing information is contained within the header of the packet.
@@ -99,7 +141,7 @@ class RnpNetworkManager {
          * 
          * @return uint8_t 
          */
-        uint8_t getAddress(){return _currentAddress;};
+        uint8_t getAddress(){return _config.currentAddress;};
 
         /**
          * @brief Set the Node Type
@@ -112,7 +154,7 @@ class RnpNetworkManager {
          * 
          * @return NODETYPE 
          */
-        NODETYPE getNodeType(){return _nodeType;};
+        NODETYPE getNodeType(){return _config.nodeType;};
 
         /**
          * @brief Add interface to iface list, places the interface at the id speicifed in the interface object
@@ -181,13 +223,10 @@ class RnpNetworkManager {
          * 
          * @param setting 
          */
-        void enableAutoRouteGen(bool setting){_routeGenEnabled = setting;};
+        void enableAutoRouteGen(bool setting){_config.routeGenEnabled = setting;};
 
         
-        enum class NOROUTE_ACTION:uint8_t{
-            DUMP=0, /*! Dumps the packet !*/
-            BROADCAST=1 /*! broadcast the packet to the specifed interfaces NB careful of packet duplication -> no de-duplication service has been written yet !*/
-        };
+        
         /**
          * @brief Set action if no route is found in the routing table.
          * 
@@ -206,7 +245,15 @@ class RnpNetworkManager {
          * 
          */
         void updateBaseTable(){_basetable = routingtable;};
-        RoutingTable routingtable;
+       
+
+        /**
+         * @brief Set the save config implementation to save the current config in memory
+         * 
+         * @param saveConfigImpl 
+         */
+       void setSaveConfigImpl(SaveConfigImpl saveConfigImpl){_saveConfigImpl = saveConfigImpl;};
+
         
     private:
 
@@ -215,7 +262,12 @@ class RnpNetworkManager {
          * 
          */
         void routePackets();
-        
+            
+        /**
+         * @brief packet forwarding logic
+         * 
+         */
+        void forwardPacket(RnpPacket& packet);
         /**
          * @brief Internal network management packets handler
          * 
@@ -230,14 +282,11 @@ class RnpNetworkManager {
         Loopback lo; // loopback is by default owned by the network manager
         std::vector<RnpInterface*> ifaceList;
 
-        uint8_t _currentAddress;
-        NODETYPE _nodeType;
+        RnpNetworkManagerConfig _config;
+        SaveConfigImpl _saveConfigImpl;
 
-        NOROUTE_ACTION _noRouteAction;
-        std::vector<uint8_t> _broadcastList;
 
-        bool _routeGenEnabled;
-
+        RoutingTable routingtable;
         RoutingTable _basetable; //copy of the intial routing table read in from config
        
 

@@ -35,7 +35,12 @@ class RoutingTable{
         {};
 
         size_t size(){return _table.size();};
-
+        /**
+         * @brief Sets a route for a given destination. Will overwrite the old route
+         * 
+         * @param destination 
+         * @param entry 
+         */
         void setRoute(uint8_t destination,const Route& entry){
             if (destination >= _table.size()){
                 _table.resize(destination+1);
