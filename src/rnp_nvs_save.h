@@ -5,8 +5,6 @@
 #if (defined ESP32 && defined ARDUINO)
 #include "Preferences.h"
 
-class Preferences;
-
 namespace RnpNvsSave
 {   
 
