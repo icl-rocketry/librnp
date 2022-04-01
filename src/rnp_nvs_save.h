@@ -1,12 +1,6 @@
 #pragma once
 #include "rnp_networkmanager.h"
-
 #include <string>
-
-
-// #define ESP32 
-// #define ARDUINO
-
 
 #if (defined ESP32 && defined ARDUINO)
 #include "Preferences.h"
