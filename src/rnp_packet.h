@@ -79,3 +79,55 @@ class RnpPacketSerialized: public RnpPacket {
         std::vector<uint8_t> packet; // contains serialized packet and header
 
 };
+
+/**
+ * @brief A templated data packet for basic types
+ * 
+ * @tparam T 
+ */
+template<class T,uint8_t SERVICE,uint8_t TYPE>
+class BasicDataPacket : public RnpPacket{
+    public:
+        ~BasicDataPacket(){};
+
+        /**
+         * @brief Construct a new Generic Data Packet
+         * 
+         * @param sys_time 
+         */
+        BasicDataPacket(T data):
+            RnpPacket(SERVICE,
+            TYPE,
+            size()),
+            data(_data)
+        {};
+
+        /**
+         * @brief Deserialize Generic Data Packet
+         * 
+         * @param packet 
+         */
+        BasicDataPacket(RnpPacketSerialized& packet):
+        RnpPacket(packet.header)
+        {
+            std::memcpy(&data,packet.getBody().data(),size());
+        };
+
+        /**
+         * @brief Serialize into buf
+         * 
+         * @param buf 
+         */
+        void serialize(std::vector<uint8_t>& buf) override{
+            RnpPacket::serialize(buf);
+            size_t bufsize = buf.size();
+            buf.resize(bufsize + size());
+            std::memcpy(buf.data() + bufsize,&data,size());      
+        };
+
+
+        //data members
+        T data;
+
+        static constexpr size_t size(){return sizeof(T);};
+};

@@ -7,52 +7,6 @@
 
 #include <cstring>
 
-PingPacket::~PingPacket()
-{};
-
-PingPacket::PingPacket(uint32_t _sys_time):
-RnpPacket(static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN),
-          static_cast<uint8_t>(NETMAN_TYPES::PING_REQ),
-          size()),
-sys_time(_sys_time)
-{};
-
-PingPacket::PingPacket(RnpPacketSerialized& packet):
-RnpPacket(packet.header)
-{
-    std::memcpy(&sys_time,packet.getBody().data(),size());
-};
-
-void PingPacket::serialize(std::vector<uint8_t> & buf){
-    RnpPacket::serialize(buf);
-    size_t bufsize = buf.size();
-    buf.resize(bufsize + size());
-    std::memcpy(buf.data() + bufsize,&sys_time,size());  
-};
-
-SetAddressPacket::~SetAddressPacket()
-{};
-
-SetAddressPacket::SetAddressPacket(uint8_t _address):
-RnpPacket(static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN),
-          static_cast<uint8_t>(NETMAN_TYPES::SET_ADDRESS),
-          size()),
-address(_address)
-{};
-
-SetAddressPacket::SetAddressPacket(RnpPacketSerialized& packet):
-RnpPacket(packet.header)
-{
-    std::memcpy(&address,packet.getBody().data(),size());
-};
-
-void SetAddressPacket::serialize(std::vector<uint8_t> & buf){
-    RnpPacket::serialize(buf);
-    size_t bufsize = buf.size();
-    buf.resize(bufsize + size());
-    std::memcpy(buf.data() + bufsize,&address,size());  
-};
-
 SetRoutePacket::~SetRoutePacket()
 {};
 

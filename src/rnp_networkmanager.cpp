@@ -22,7 +22,7 @@
 RnpNetworkManager::RnpNetworkManager(uint8_t address, NODETYPE nodeType, bool enableLogging):
 routingtable(1),
 serviceLookup(1), // initalize single element for NETMAN service
-_config({address,nodeType,NOROUTE_ACTION::DUMP,{},false}),
+_config({address,nodeType,NOROUTE_ACTION::DUMP,false}),
 _loggingEnabled(enableLogging)
 {
     addInterface(&lo); // add loopback interface
@@ -93,16 +93,20 @@ void RnpNetworkManager::sendPacket(RnpPacket& packet){
             }
             case NOROUTE_ACTION::BROADCAST:
             {
-                if (_config.broadcastList.size() == 0){
-                    return;
-                }
-                for (uint8_t ifaceID : _config.broadcastList){
-                    if ((ifaceID  == packet.header.src_iface) || (ifaceID == static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK))){
-                        continue; // dont broadcast packet over the interface it was received
-                    }
+                auto broadcastPacket = [&packet,this](uint8_t ifaceID){
+                    if ((ifaceID == packet.header.src_iface) || (ifaceID == static_cast<uint8_t>(DEFAULT_INTERFACES::LOOPBACK)))
+                        {
+                            return; // dont broadcast packet over the interface it was received
+                        }
+                        sendByRoute({ifaceID, 0, {}}, packet); // metric is not important and link layer addressing is ignored.
+                };
+
+                if (_broadcastList.size() == 0){//broadcast over all avalibale interfaces if no broadcast list is provided
+                    for (int i = 0; i<ifaceList.size();i++){broadcastPacket(i);}
+                }else{
+                    for (uint8_t ifaceID : _broadcastList){broadcastPacket(ifaceID);}
+                }     
                 
-                    sendByRoute({ifaceID,0,{}},packet); //metric is not important and link layer addressing is ignored.
-                }
             }
             default:
             {
@@ -253,7 +257,7 @@ void RnpNetworkManager::unregisterService(const uint8_t serviceID){
 void RnpNetworkManager::setNoRouteAction(const NOROUTE_ACTION action,const std::vector<uint8_t> ifaces) 
 {
     _config.noRouteAction = action;
-    _config.broadcastList = ifaces;
+    _broadcastList = ifaces;
 }
 
 
@@ -344,16 +348,16 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
         {
             // we receive a ping response
             //currently not handling this
-            PingPacket pingres(*packet_ptr);
-            log("Ping received with systime of " + std::to_string(pingres.sys_time));
+            GenericRnpPacket packet(*packet_ptr);
+            log("Ping received with systime of " + std::to_string(packet.data));
            
             break;
         }
         case NETMAN_TYPES::SET_ADDRESS:
         {
-            SetAddressPacket setaddress(*packet_ptr);
-            setAddress(setaddress.address);
-            log("Node address is now " + std::to_string(setaddress.address));
+            GenericRnpPacket packet(*packet_ptr);
+            setAddress(static_cast<uint8_t>(packet.data));
+            log("Node address is now " + std::to_string(static_cast<uint8_t>(packet.data)));
             break;
         }
         case NETMAN_TYPES::SET_ROUTE:
@@ -361,6 +365,27 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
             SetRoutePacket setroutepacket(*packet_ptr);
             routingtable.setRoute(setroutepacket.destination,setroutepacket.getRoute());
             log("Route for Node " + std::to_string(setroutepacket.destination) + " has been updated");
+            break;
+        }
+        case NETMAN_TYPES::SET_TYPE:
+        {
+            GenericRnpPacket packet(*packet_ptr);
+            _config.nodeType = static_cast<NODETYPE>(packet.data);
+            log("Node type is now " + std::to_string(static_cast<uint8_t>(packet.data)));
+            break;
+        }
+        case NETMAN_TYPES::SET_NOROUTEACTION:
+        {
+            GenericRnpPacket packet(*packet_ptr);
+            _config.noRouteAction = static_cast<NOROUTE_ACTION>(packet.data);
+            log("Node NoRouteAction is now " + std::to_string(static_cast<uint8_t>(packet.data)));
+            break;
+        }
+        case NETMAN_TYPES::SET_ROUTEGEN:
+        {
+            GenericRnpPacket packet(*packet_ptr);
+            _config.routeGenEnabled = static_cast<bool>(packet.data);
+            log("Node RouteGen is now " + std::to_string(static_cast<bool>(packet.data)));
             break;
         }
         case NETMAN_TYPES::SAVE_CONF:

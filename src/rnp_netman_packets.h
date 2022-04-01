@@ -21,69 +21,18 @@ enum class NETMAN_TYPES:uint8_t{
 
 };
 
-class PingPacket: public RnpPacket{
-    public:
-        ~PingPacket();
 
-        /**
-         * @brief Construct a new Ping Packet object
-         * 
-         * @param sys_time 
-         */
-        PingPacket(uint32_t sys_time);
+template<uint8_t TYPE>
+using GenericRnpPacket_Base = BasicDataPacket<uint32_t,static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN),TYPE>;
 
-        /**
-         * @brief Deserialize Ping Packet
-         * 
-         * @param packet 
-         */
-        PingPacket(RnpPacketSerialized& packet);
+using GenericRnpPacket = GenericRnpPacket_Base<0>; //when we are reading data we dont care about the type 
 
-        /**
-         * @brief Serialize into buf
-         * 
-         * @param buf 
-         */
-        void serialize(std::vector<uint8_t>& buf) override;
+using PingPacket = GenericRnpPacket_Base<static_cast<uint8_t>(NETMAN_TYPES::PING_REQ)>;
+using SetAddressPacket = GenericRnpPacket_Base<static_cast<uint8_t>(NETMAN_TYPES::SET_ADDRESS)>;
+using SetTypePacket = GenericRnpPacket_Base<static_cast<uint8_t>(NETMAN_TYPES::SET_TYPE)>;
+using SetNoRouteActionPacket = GenericRnpPacket_Base<static_cast<uint8_t>(NETMAN_TYPES::SET_NOROUTEACTION)>;
+using SetRouteGenPacket = GenericRnpPacket_Base<static_cast<uint8_t>(NETMAN_TYPES::SET_ROUTEGEN)>;
 
-
-        //data members
-        uint32_t sys_time;
-
-        static constexpr size_t size(){return sizeof(sys_time);};
-};
-
-class SetAddressPacket: public RnpPacket{
-    public:
-        ~SetAddressPacket();
-
-        /**
-         * @brief Construct a new Ping Packet object
-         * 
-         * @param sys_time 
-         */
-        SetAddressPacket(uint8_t address);
-
-        /**
-         * @brief Deserialize Ping Packet
-         * 
-         * @param packet 
-         */
-        SetAddressPacket(RnpPacketSerialized& packet);
-
-        /**
-         * @brief Serialize into buf
-         * 
-         * @param buf 
-         */
-        void serialize(std::vector<uint8_t>& buf) override;
-
-
-        //data members
-        uint8_t address;
-
-        static constexpr size_t size(){return sizeof(address);};
-};
 
 class SetRoutePacket: public RnpPacket{
     enum class ADDRESS_TYPE{

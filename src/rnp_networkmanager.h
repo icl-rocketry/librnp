@@ -55,7 +55,6 @@ struct RnpNetworkManagerConfig{
     uint8_t currentAddress;
     NODETYPE nodeType;
     NOROUTE_ACTION noRouteAction;
-    std::vector<uint8_t> broadcastList;
     bool routeGenEnabled;
 };
 
@@ -224,8 +223,6 @@ class RnpNetworkManager {
          * @param setting 
          */
         void enableAutoRouteGen(bool setting){_config.routeGenEnabled = setting;};
-
-        
         
         /**
          * @brief Set action if no route is found in the routing table.
@@ -240,12 +237,12 @@ class RnpNetworkManager {
          * 
          */
         void generateDefaultRoutes();
+        
         /**
          * @brief updates the _basetable to the current routing table
          * 
          */
         void updateBaseTable(){_basetable = routingtable;};
-       
 
         /**
          * @brief Set the save config implementation to save the current config in memory
@@ -281,6 +278,11 @@ class RnpNetworkManager {
 
         Loopback lo; // loopback is by default owned by the network manager
         std::vector<RnpInterface*> ifaceList;
+        /**
+         * @brief Which interfaces to broadcast packets if we dont have an entry. If empty, packet will be broadcasted to all interfaces
+         * 
+         */
+        std::vector<uint8_t> _broadcastList;
 
         RnpNetworkManagerConfig _config;
         SaveConfigImpl _saveConfigImpl;
