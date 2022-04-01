@@ -392,8 +392,8 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
         {
             if (_saveConfigImpl)
             {
-                 log("Configuration Saved!");
-                _saveConfigImpl(_config);
+                _saveConfigImpl(_config) ? log("Configuration Failed to Save!") : log("Configuration Saved!");   
+
             }else{
                 log("No Save Config Implementation Provided - Not Saved!");
             }

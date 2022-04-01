@@ -58,7 +58,7 @@ struct RnpNetworkManagerConfig{
     bool routeGenEnabled;
 };
 
-using SaveConfigImpl = std::function<void(RnpNetworkManagerConfig config)>;
+using SaveConfigImpl = std::function<bool(RnpNetworkManagerConfig const & config)>;
 
 
 class RnpNetworkManager {
