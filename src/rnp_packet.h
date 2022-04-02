@@ -131,3 +131,53 @@ class BasicDataPacket : public RnpPacket{
 
         static constexpr size_t size(){return sizeof(T);};
 };
+
+template<uint8_t SERVICE,uint8_t TYPE>
+class MessagePacket_Base : public RnpPacket{
+    public:
+        ~MessagePacket_Base(){};
+
+        /**
+         * @brief Construct a new Generic Data Packet
+         * 
+         * @param sys_time 
+         */
+        MessagePacket_Base(std::string msg):
+            RnpPacket(SERVICE,
+            TYPE,
+            size()),
+            _msg(msg)
+        {};
+
+        /**
+         * @brief Deserialize Generic Data Packet
+         * 
+         * @param packet 
+         */
+        MessagePacket_Base(RnpPacketSerialized& packet):
+        RnpPacket(packet.header)
+        {
+            auto packetBody = packet.getBody();
+            _msg.assign(packetBody.begin(),packetBody.end());
+        };
+
+        /**
+         * @brief Serialize into buf
+         * 
+         * @param buf 
+         */
+        void serialize(std::vector<uint8_t>& buf) override{
+            RnpPacket::serialize(buf);
+            size_t bufsize = buf.size();
+            buf.resize(bufsize + size());
+            std::memcpy(buf.data() + bufsize,_msg.data(),size());      
+        };
+
+
+        //data members
+        std::string _msg;
+
+        size_t size(){return _msg.size();};
+};
+
+using MessagePacket_Default = MessagePacket_Base<0,0>;
