@@ -95,7 +95,7 @@ class BasicDataPacket : public RnpPacket{
          * 
          * @param sys_time 
          */
-        BasicDataPacket(T data):
+        BasicDataPacket(T _data):
             RnpPacket(SERVICE,
             TYPE,
             size()),

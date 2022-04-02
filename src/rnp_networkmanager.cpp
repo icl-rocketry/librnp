@@ -20,9 +20,9 @@
 
 
 RnpNetworkManager::RnpNetworkManager(uint8_t address, NODETYPE nodeType, bool enableLogging):
-routingtable(1),
 serviceLookup(1), // initalize single element for NETMAN service
 _config({address,nodeType,NOROUTE_ACTION::DUMP,false}),
+routingtable(1),
 _loggingEnabled(enableLogging)
 {
     addInterface(&lo); // add loopback interface
@@ -31,9 +31,9 @@ _loggingEnabled(enableLogging)
 
 
 RnpNetworkManager::RnpNetworkManager(RnpNetworkManagerConfig config, bool enableLogging):
-routingtable(1),
 serviceLookup(1), // initalize single element for NETMAN service
 _config(config),
+routingtable(1),
 _loggingEnabled(enableLogging)
 {
     addInterface(&lo); // add loopback interface
@@ -102,7 +102,7 @@ void RnpNetworkManager::sendPacket(RnpPacket& packet){
                 };
 
                 if (_broadcastList.size() == 0){//broadcast over all avalibale interfaces if no broadcast list is provided
-                    for (int i = 0; i<ifaceList.size();i++){broadcastPacket(i);}
+                    for (int i = 0; i < ifaceList.size();i++){broadcastPacket(i);}
                 }else{
                     for (uint8_t ifaceID : _broadcastList){broadcastPacket(ifaceID);}
                 }     
@@ -420,7 +420,7 @@ void RnpNetworkManager::forwardPacket(RnpPacket& packet){
     if (packet.header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG) 
         && packet.header.source_service == static_cast<uint8_t>(DEFAULT_SERVICES::NOSERVICE))
     { 
-        packet.header.source == _config.currentAddress;
+        packet.header.source = _config.currentAddress;
     }
 
     sendPacket(packet);

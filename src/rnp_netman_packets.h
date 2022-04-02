@@ -4,6 +4,7 @@
 #include "rnp_header.h"
 #include "rnp_serializer.h"
 #include "rnp_routingtable.h"
+#include "rnp_networkmanager.h"
 
 #include <array>
 
