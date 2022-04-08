@@ -7,6 +7,10 @@
 
 #include "rnp_interface.h"
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 Printer::Printer(uint8_t id,std::string name):
 RnpInterface(id,name)
 {};
@@ -31,7 +35,8 @@ void Printer::sendPacket(RnpPacket& data){
     aout<<"\n";
 
     #ifdef ARDUINO
-    Serial.println(aout.str());
+    
+    Serial.println(aout.str().c_str());
     #else
     std::cout<<aout.str()<<std::endl;
     #endif
