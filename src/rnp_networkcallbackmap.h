@@ -1,11 +1,9 @@
 #pragma once
 
-//maybe this should be a part of librnp?
-
 #include <unordered_map>
 #include <functional>
 #include <memory>
-#include <rnp_packet.h>
+#include "rnp_packet.h"
 
 
 namespace NetworkCallbackMap
