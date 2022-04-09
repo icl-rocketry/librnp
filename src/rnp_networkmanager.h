@@ -275,8 +275,9 @@ class RnpNetworkManager {
         packetBuffer_t packetBuffer;
 
         std::vector<PacketHandlerCb> serviceLookup;
-
+    public:
         Loopback lo; // loopback is by default owned by the network manager
+    private:
         std::vector<RnpInterface*> ifaceList;
         /**
          * @brief Which interfaces to broadcast packets if we dont have an entry. If empty, packet will be broadcasted to all interfaces

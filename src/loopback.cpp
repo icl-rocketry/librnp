@@ -17,10 +17,10 @@ void Loopback::update()
 {};
 
 void Loopback::sendPacket(RnpPacket& data){
-    if (data.header.source != data.header.destination){
-        //source and destination do not match. dump packet
-        return;
-    }
+    // if (data.header.source != data.header.destination){
+    //     //source and destination do not match. dump packet
+    //     return;
+    // }
     if (_packetBuffer == nullptr){
         // no buffer present
         return;
