@@ -145,7 +145,7 @@ class MessagePacket_Base : public RnpPacket{
         MessagePacket_Base(std::string msg):
             RnpPacket(SERVICE,
             TYPE,
-            size()),
+            msg.size()),
             _msg(msg)
         {};
 
