@@ -323,7 +323,9 @@ void RnpNetworkManager::routePackets(){
                 //empty function pointer
                 return;
             }
+
             callback(std::move(packet_ptr)); // no copy
+
             break;
         }
     }
@@ -340,7 +342,7 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
             pong.header.type = (uint8_t)NETMAN_TYPES::PING_RES; // change type from request to response
             pong.header.destination_service = pong.header.source_service; //reply ping to orignator service
             pong.header.source_service = (uint8_t)DEFAULT_SERVICES::NETMAN; // update source service
-            sendPacket(pong);
+            sendPacket(pong); 
             log("ping sent");
             break;
         }

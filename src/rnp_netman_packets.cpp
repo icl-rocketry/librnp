@@ -46,7 +46,7 @@ metric(route.metric)
 };
 
 SetRoutePacket::SetRoutePacket(RnpPacketSerialized& packet):
-RnpPacket(packet.header)
+RnpPacket(packet,size())
 {
     getSerializer().deserialize(*this,packet.getBody());
     const size_t offset = header.size() + getSerializer().member_size(); // the std::array is not included inthe serialziation framework 

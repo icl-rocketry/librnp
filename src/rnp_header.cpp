@@ -16,6 +16,7 @@ hops{0}
 {};
 
 RnpHeader::RnpHeader(const std::vector<uint8_t> &data) {
+	if (data.size() < size()){throw std::runtime_error("Buffer too small to deserialize header from");};
 	getSerializer().deserialize(*this, data); 
 }
 

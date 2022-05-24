@@ -3,18 +3,24 @@
 
 #include <vector>
 
+RnpPacket::~RnpPacket(){};
 
-RnpPacket::~RnpPacket()
-{};
+RnpPacket::RnpPacket(uint8_t packetService, uint8_t packetType, uint16_t packetSize) : header(packetService, packetType, packetSize){};
 
-RnpPacket::RnpPacket(uint8_t packetService, uint8_t packetType, uint16_t packetSize):
-header(packetService,packetType,packetSize)
-{};
+RnpPacket::RnpPacket(RnpHeader header) : header(header){};
 
-RnpPacket::RnpPacket(RnpHeader _header):
-header(_header)
-{};
-
+RnpPacket::RnpPacket(const RnpPacketSerialized &serializedPacket, size_t size) : header(serializedPacket.header)
+{
+    
+    if (header.packet_len != size)
+    {
+        throw std::runtime_error("Header size does not match expeceted size!");
+    }
+    if (serializedPacket.getBodySize() != size)
+    {
+        throw std::runtime_error("Buffer len does not match expected size!");
+    }
+};
 
 void RnpPacket::serialize(std::vector<uint8_t>& buf){
     header.serialize(buf);

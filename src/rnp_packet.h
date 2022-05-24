@@ -3,6 +3,8 @@
 #include "rnp_header.h"
 #include <vector>
 
+class RnpPacketSerialized; // forward declaration
+
 class RnpPacket {
     public:
         virtual ~RnpPacket();
@@ -12,16 +14,25 @@ class RnpPacket {
          * 
          * @param packetService 
          * @param packetType 
-         * @param packet_size 
+         * @param packetSize 
          */
-        RnpPacket(uint8_t packetService, uint8_t packetType, uint16_t packet_size);
+        RnpPacket(uint8_t packetService, uint8_t packetType, uint16_t packetSize);
 
         /**
-         * @brief Construct a new Rnp Packet object with header
+         * @brief Construct a new Rnp Packet object from a header
          * 
          * @param header 
          */
         RnpPacket(RnpHeader header);
+
+        /**
+         * @brief Deserialization Constructor with size checking. Throws std::runtime_error if the expected size
+         * Doesnt match the size decoded in the header or in the provided buffer.
+         * 
+         * @param serializedPacket - const reference to RnpPacketSerialzed object containing raw packet data
+         * @param size expected size of packet body
+         */
+        RnpPacket(const RnpPacketSerialized& serializedPacket,size_t size);
 
         //Serialization
         /**
@@ -32,7 +43,6 @@ class RnpPacket {
          */
         virtual void serialize(std::vector<uint8_t>& buf);
 
-    
         RnpHeader header; 
 };
 
@@ -108,7 +118,7 @@ class BasicDataPacket : public RnpPacket{
          * @param packet 
          */
         BasicDataPacket(RnpPacketSerialized& packet):
-        RnpPacket(packet.header)
+        RnpPacket(packet,size())
         {
             std::memcpy(&data,packet.getBody().data(),size());
         };
@@ -154,11 +164,10 @@ class MessagePacket_Base : public RnpPacket{
          * 
          * @param packet 
          */
-        MessagePacket_Base(RnpPacketSerialized& packet):
-        RnpPacket(packet.header)
+        MessagePacket_Base(RnpPacketSerialized& packetData):
+        RnpPacket(packetData.header) //message packet has a dynamic size so cant check size of body while deserializing
         {
-            auto packetBody = packet.getBody();
-            _msg.assign(packetBody.begin(),packetBody.end());
+            _msg.assign(packetData.packet.begin() + header.size(),packetData.packet.end());
         };
 
         /**

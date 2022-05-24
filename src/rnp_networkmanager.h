@@ -275,7 +275,7 @@ class RnpNetworkManager {
         packetBuffer_t packetBuffer;
 
         std::vector<PacketHandlerCb> serviceLookup;
-    public:
+        
         Loopback lo; // loopback is by default owned by the network manager
     private:
         std::vector<RnpInterface*> ifaceList;

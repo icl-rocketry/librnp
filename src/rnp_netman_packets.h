@@ -24,7 +24,7 @@ enum class NETMAN_TYPES:uint8_t{
 
 
 template<uint8_t TYPE>
-using GenericRnpPacket_Base = BasicDataPacket<uint32_t,static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN),TYPE>;
+using GenericRnpPacket_Base = BasicDataPacket<uint32_t,TYPE,static_cast<uint8_t>(DEFAULT_SERVICES::NETMAN)>;
 
 using GenericRnpPacket = GenericRnpPacket_Base<0>; //when we are reading data we dont care about the type 
 
