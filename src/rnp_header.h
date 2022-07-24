@@ -79,4 +79,12 @@ class RnpHeader {
             aout<<  "hops: " << (int)header.hops<< "\n";
             return aout;
         }
+
+        static void generateResponseHeader(const RnpHeader& requestHeader,RnpHeader& responseHeader){
+            responseHeader.uid = requestHeader.uid;
+            responseHeader.source_service = requestHeader.destination_service;
+            responseHeader.destination_service = requestHeader.source_service;
+            responseHeader.source = requestHeader.destination;
+            responseHeader.destination = requestHeader.source;
+        }
 };
