@@ -9,6 +9,7 @@ namespace RnpNvsSave
 {   
 
     static bool SaveToNVS(RnpNetworkManagerConfig const & config){
+        Preferences pref;
         if (!pref.begin("Rnp_Config")){
             return true;
         }
@@ -16,7 +17,7 @@ namespace RnpNvsSave
         int error;
 
         pref.putUChar("address",config.currentAddress) ? : error++;
-        pref.putUChar("nodeType"static_cast<uint8_t>(config.nodeType)) ? : error++;
+        pref.putUChar("nodeType",static_cast<uint8_t>(config.nodeType)) ? : error++;
         pref.putUChar("noRouteAction",static_cast<uint8_t>(config.noRouteAction)) ? : error++;
         pref.putBool("routeGen",config.routeGenEnabled) ? : error++;
 
@@ -24,6 +25,7 @@ namespace RnpNvsSave
     };
 
     static bool ReadFromNVS(RnpNetworkManagerConfig& config){
+        Preferences pref;
         if (!pref.begin("Rnp_Config")){
             return true;
         }
