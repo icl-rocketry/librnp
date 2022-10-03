@@ -14,7 +14,7 @@ namespace RnpNvsSave
             return true;
         }
           
-        int error;
+        int error = 0;
 
         pref.putUChar("address",config.currentAddress) ? : error++;
         pref.putUChar("nodeType",static_cast<uint8_t>(config.nodeType)) ? : error++;
