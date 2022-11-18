@@ -416,14 +416,15 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr){
 
 
 void RnpNetworkManager::forwardPacket(RnpPacket& packet){
-    if (_config.nodeType != NODETYPE::HUB){return;}; // only forward if node is hub
 
-
-    if (packet.header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG) 
-        && packet.header.source_service == static_cast<uint8_t>(DEFAULT_SERVICES::NOSERVICE))
-    { 
+    if (packet.header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::DEBUG) && packet.header.source_service == static_cast<uint8_t>(DEFAULT_SERVICES::NOSERVICE))
+    {
         packet.header.source = _config.currentAddress;
     }
+    else if (_config.nodeType != NODETYPE::HUB)
+    {
+        return;
+    }; // only forward if node is hub
 
     sendPacket(packet);
 }
