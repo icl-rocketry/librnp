@@ -11,7 +11,7 @@ public:
      *
      * @param ServiceID Identifier of service
      */
-    RnpNetworkService(uint8_t ServiceID);
+    RnpNetworkService(uint8_t ServiceID) : _ServiceID(ServiceID){};
 
     /**
      * @brief Gets the network callback functor bound to the current instance of the class.
@@ -24,7 +24,9 @@ public:
         { networkCallback(std::move(packetptr)); };
     };
 
-    uint8_t getServieID() { return ServiceID; };
+    uint8_t getServieID() { return _ServiceID; };
+
+    virtual ~RnpNetworkService(){};
 
 private:
     /**
@@ -32,7 +34,7 @@ private:
      * as the service would need to be un-registed from the netowkr manager before changing its service ID.
      *
      */
-    const uint8_t ServiceID;
+    const uint8_t _ServiceID;
 
     /**
      * @brief Virtual function for the network callback.
