@@ -9,6 +9,7 @@
 
 #include "rnp_packet.h"
 
+//copied from rnp_networkmanager
 using packetptr_t = std::unique_ptr<RnpPacketSerialized>;
 using packetBuffer_t = std::queue<packetptr_t>;
 
