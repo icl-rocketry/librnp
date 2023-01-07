@@ -48,7 +48,7 @@ class RnpInterface{
 
     protected:
         packetBuffer_t* _packetBuffer;
-        uint8_t _id; // unique id for interface 
-        std::string _name;
+        const uint8_t _id; // unique id for interface 
+        const std::string _name;
 };
 
