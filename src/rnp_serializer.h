@@ -1,87 +1,190 @@
 #pragma once
 
-#include <vector>
-#include <tuple>
-#include <string>
 #include <cassert>
-#include <sstream>
 #include <cstring>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <vector>
 
-
+/**
+ * @brief Class for a Serialisable Element
+ *
+ * @author Kiran de Silva
+ *
+ * @tparam C Element container type
+ * @tparam T Type of the element
+ */
 template <class C, class T>
-class RnpSerializableElement
-{
+class RnpSerializableElement {
+
+private:
+    /**
+     * @brief Element size
+     */
     static constexpr size_t size = sizeof(T);
-    T C::* ptr; // member variable pointer to provide instance to pointer - https://riptutorial.com/cplusplus/example/6997/pointers-to-member-variables
-    // allows classes to be static and allows pointers to class members to be defined at compile time
+
+    /**
+     * @brief Member variable pointer
+     *
+     * Solution from:
+     * https://riptutorial.com/cplusplus/example/6997/pointers-to-member-variables.
+     * Allows classes to be static and allows pointers to class members to be
+     * defined at compile time.
+     */
+    T C::*ptr;
 
 public:
-    constexpr RnpSerializableElement(T C::* elem) : ptr(elem) {} // constructor
+    /**
+     * @brief Construct a new Serialisable Element object
+     *
+     * @param[in] elem Class pointer to the element
+     */
+    constexpr RnpSerializableElement(T C::*elem) : ptr(elem) {} // constructor
 
-    void serialize(const C& owner, std::vector<uint8_t>& buffer) const
-    {
+    /**
+     * @brief Serialize the element
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] owner Reference to the container
+     * @param[out] buffer Output buffer
+     */
+    void serialize(const C &owner, std::vector<uint8_t> &buffer) const {
+        // Calculate buffer size
         const size_t bufSize = buffer.size();
+
+        // Resize buffer to add space for the new element
         buffer.resize(bufSize + size);
+
+        // Copy new element onto the end of the buffer
         std::memcpy(buffer.data() + bufSize, &(owner.*ptr), size);
     }
 
-    size_t deserialize(C& owner, const std::vector<uint8_t>& buffer, size_t offset) const
-    {
-        assert(offset + size <= buffer.size()); //dump packet instead?
+    /**
+     * @brief Deserialize the element
+     *
+     * @author Kiran de Silva
+     *
+     * @param[out] owner Reference to the container
+     * @param[in] buffer Input buffer
+     * @param[in] offset Offset in the buffer for the element
+     * @return size_t Size of the element
+     */
+    size_t deserialize(C &owner, const std::vector<uint8_t> &buffer,
+                       const size_t offset) const {
+        // Check that the size of the buffer is not exceeded
+        /// @todo Dump packet instead?
+        assert(offset + size <= buffer.size());
+
+        // Copy the element from the buffer
         std::memcpy(&(owner.*ptr), buffer.data() + offset, size);
+
+        // Return the size of the element
         return size;
     }
-
 };
 
+/**
+ * @brief Class for a Serializer
+ *
+ * @author Kiran de Silva
+ *
+ * @tparam C Element container type
+ * @tparam T Type of the element
+ */
 template <class C, class... T> // variadic template
-class RnpSerializer
-{
+class RnpSerializer {
+
+private:
+    /**
+     * @brief Elements for (de)serialization
+     *
+     * A tuple is used to support elements with different types
+     */
     std::tuple<RnpSerializableElement<C, T>...> elements;
 
+    /**
+     * @brief Deserialize the buffer
+     *
+     * @author Kiran de Silva
+     *
+     * @tparam I Element iteration
+     * @param[out] owner Reference to the container
+     * @param[in] buffer Input buffer
+     * @param[in] pos Element position
+     */
     template <size_t I>
-    void deserialize_impl(C& owner, const std::vector<uint8_t>& buffer,[[maybe_unused]] size_t pos) const
-    {
-        
-        if constexpr (I < sizeof...(T)) // sizeof...(T) gives the number of elements in the pack expression
-        {
-            auto element_size = std::get<I>(elements).deserialize(owner, buffer, pos); // gets the I'th element from elements tuple and calls deserialize
-            deserialize_impl<I + 1>(owner, buffer, pos + element_size); // recursion, increment I to process next element
+    void deserialize_impl(C &owner, const std::vector<uint8_t> &buffer,
+                          [[maybe_unused]] const size_t pos) const {
+        // Check that iteration is within the size of the buffer
+        if constexpr (I < sizeof...(T)) {
+            // Get the I-th element from the elements tuple and deserialize
+            auto element_size =
+                std::get<I>(elements).deserialize(owner, buffer, pos);
+
+            // Recurse by calling the deserialisation of the next element
+            deserialize_impl<I + 1>(owner, buffer, pos + element_size);
         }
     }
 
 public:
-    // Constructor, creates serializable element for all the member variable pointers
-    constexpr RnpSerializer(T C::* ...ptrs) : elements(std::make_tuple(RnpSerializableElement(ptrs)...)) {} 
+    /**
+     * @brief Construct a new Rnp Serializer object
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] ptrs Member variable pointers
+     */
+    constexpr RnpSerializer(T C::*...ptrs)
+        : elements(std::make_tuple(RnpSerializableElement(ptrs)...)) {}
 
-    static constexpr size_t member_size()
-    {
-        return (0 + ... + sizeof(T)); // unary fold expression, applies sizeof to all members in t and calculated total size
+    /**
+     * @brief Calculate the size of all members
+     *
+     * @author Kiran de Silva
+     *
+     * @return constexpr size_t Size of all member elements
+     */
+    static constexpr size_t member_size() {
+        // Return the sum of all member sizes
+        return (0 + ... + sizeof(T));
     }
 
-    std::vector<uint8_t> serialize(const C& owner) const
-    {
-        std::vector<uint8_t> ret; // buffer of serialized objects
-        ret.reserve(member_size()); // allocate memory but dont change size so we can easily get the end of buffer in serialize
+    /**
+     * @brief Serialize the elements
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] owner Reference to the container
+     * @return std::vector<uint8_t> Serialized bytes
+     */
+    std::vector<uint8_t> serialize(const C &owner) const {
+        // Declare buffer for the serialized objects
+        std::vector<uint8_t> ret;
 
-        std::apply(         // applies serialize to all members in elements
-                            // to capture all used variables by value, use a capture value of =.
-                            // to capture all used variables by reference, use a capture value of &.
-            [&](auto&&... args)   
-            {
-                (..., args.serialize(owner, ret)); //apply serialize on all elements
-            },
-                elements);
+        // Allocate memory but do not change the size so we can easily get the
+        // end of buffer in serialize
+        ret.reserve(member_size());
 
-        return ret; // return serialized bytes
+        // Apply serialise to all of the elements
+        std::apply([&](auto &&...args) { (..., args.serialize(owner, ret)); },
+                   elements);
+
+        // Return the serialized bytes
+        return ret;
     }
 
-
-    void deserialize(C& owner, const std::vector<uint8_t>& buffer) const
-    {
-        deserialize_impl<0>(owner, buffer, 0); // public implmentation of deserializer
+    /**
+     * @brief Deserialize the elements
+     *
+     * @author Kiran de Silva
+     *
+     * @param[out] owner Reference to container
+     * @param[in] buffer Input buffer
+     */
+    void deserialize(C &owner, const std::vector<uint8_t> &buffer) const {
+        // Deserialize the buffer
+        deserialize_impl<0>(owner, buffer, 0);
     }
-
 };
-
-
