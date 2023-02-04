@@ -12,7 +12,6 @@
 
 #include <rnp_networkmanager.h>
 
-#include "stubs.h"
 
 
 
