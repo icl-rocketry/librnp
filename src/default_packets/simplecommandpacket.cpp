@@ -3,36 +3,44 @@
 #include "rnp_packet.h"
 #include "rnp_serializer.h"
 
+SimpleCommandPacket::~SimpleCommandPacket(){};
 
-SimpleCommandPacket::~SimpleCommandPacket()
-{};
+SimpleCommandPacket::SimpleCommandPacket(const uint8_t _command,
+                                         const uint32_t _arg)
+    : RnpPacket(0, 0, size()), command(_command), arg(_arg){};
 
-SimpleCommandPacket::SimpleCommandPacket(uint8_t _command, uint32_t _arg):
-RnpPacket(0,
-          0,
-          size()),
-command(_command),
-arg(_arg)
-{};
-
-SimpleCommandPacket::SimpleCommandPacket(const RnpPacketSerialized& packet):
-RnpPacket(packet,size())
-{
-    getSerializer().deserialize(*this,packet.getBody());
+SimpleCommandPacket::SimpleCommandPacket(const RnpPacketSerialized &packet)
+    : RnpPacket(packet, size()) {
+    // Deserialize packet and store
+    getSerializer().deserialize(*this, packet.getBody());
 };
 
-void SimpleCommandPacket::serialize(std::vector<uint8_t>& buf){
+void SimpleCommandPacket::serialize(std::vector<uint8_t> &buf) {
+    // Serialize packet into buffer
     RnpPacket::serialize(buf);
-	size_t bufsize = buf.size();
-	buf.resize(bufsize + size());
-	std::memcpy(buf.data() + bufsize,getSerializer().serialize(*this).data(),size());
+
+    // Extract buffer size
+    size_t bufsize = buf.size();
+
+    // Resize buffer to include the packet
+    buf.resize(bufsize + size());
+
+    // Copy packet onto end of buffer
+    std::memcpy(buf.data() + bufsize, getSerializer().serialize(*this).data(),
+                size());
 };
 
-
-command_t CommandPacket::getCommand(const RnpPacketSerialized& packet) 
-{
+command_t CommandPacket::getCommand(const RnpPacketSerialized &packet) {
+    // Extract packet header size
     const size_t headerSize = packet.header.size();
+
+    // Declare command identifier
     command_t commandID;
-    std::memcpy(&commandID,packet.packet.data() + headerSize,sizeof(command_t)); // extract command id from any command packet
+
+    // Extract command identifier from packet
+    std::memcpy(&commandID, packet.packet.data() + headerSize,
+                sizeof(command_t));
+
+    // Return command identifier
     return commandID;
 }
