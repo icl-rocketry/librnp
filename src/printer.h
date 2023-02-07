@@ -1,37 +1,74 @@
 #pragma once
-/**
- * @file printer.h
- * @author Kiran de Silva
- * @brief Printer Debug Interface -> will just print to std::cout the received packet
- * @version 0.1
- * @date 2022-04-02
- * 
- * @copyright Copyright (c) 2022
- * 
- */
 
 #include <memory>
-#include <vector>
 #include <string>
-
+#include <vector>
 
 #include "rnp_interface.h"
 
+/**
+ * @brief Printer class
+ *
+ * @author Kiran de Silva
+ */
+class Printer : public RnpInterface {
+public:
+    /**
+     * @brief Construct a new Printer object
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] id Identifier
+     * @param[in] name Name
+     */
+    Printer(const uint8_t id, const std::string name = "Printer");
 
-class Printer : public RnpInterface{
-    public:
-        Printer(uint8_t id,std::string name = "printer");
+    /**
+     * @brief Set up Printer
+     *
+     * @author Kiran de Silva
+     */
+    void setup() override;
 
-        void setup() override;
-        void update() override;
+    /**
+     * @brief Update Printer
+     *
+     * @author Kiran de Silva
+     */
+    void update() override;
 
-        void sendPacket(RnpPacket& data) override;
-        
-        const RnpInterfaceInfo* getInfo() override {return &info;};
+    /**
+     * @brief Send packet
+     *
+     * On Arduino, the packet is printed over serial. Otherwise, it is printed
+     * on standard output.
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] data Packet
+     */
+    void sendPacket(RnpPacket &data) override;
 
-        ~Printer(){};
+    /**
+     * @brief Get Printer info
+     *
+     * @author Kiran de Silva
+     *
+     * @return const RnpInterfaceInfo* Printer info
+     */
+    const RnpInterfaceInfo *getInfo() override {
+        // Return Printer info
+        return &info;
+    };
 
-    private:
-        RnpInterfaceInfo info;
-        
+    /**
+     * @brief Destroy the Printer object
+     *
+     * @author Kiran de Silva
+     */
+    ~Printer(){};
+
+private:
+    /// @brief Printer info
+    RnpInterfaceInfo info;
 };
