@@ -1,90 +1,178 @@
 #pragma once
 
-#include <vector>
-#include <variant>
 #include <sstream>
+#include <variant>
+#include <vector>
+
 #include "rnp_serializer.h"
 
+/**
+ * @brief Packet Header class
+ *
+ * @author Kiran de Silva
+ */
 class RnpHeader {
-        
-    private:
 
-        static constexpr auto getSerializer()
-        {
-            auto ret = RnpSerializer(
-                &RnpHeader::start_byte,
-                &RnpHeader::packet_len,
-                &RnpHeader::uid,
-                &RnpHeader::source_service,
-                &RnpHeader::destination_service,
-                &RnpHeader::type,
-                &RnpHeader::source,
-                &RnpHeader::destination,
-                &RnpHeader::hops
-            );
-            return ret;
-        }
+private:
+    /**
+     * @brief Get the Header serializer
+     *
+     * @author Kiran de Silva
+     *
+     * @return constexpr auto Header serializer
+     */
+    static constexpr auto getSerializer() {
+        // Generate serializer
+        auto ret = RnpSerializer(&RnpHeader::start_byte, &RnpHeader::packet_len,
+                                 &RnpHeader::uid, &RnpHeader::source_service,
+                                 &RnpHeader::destination_service,
+                                 &RnpHeader::type, &RnpHeader::source,
+                                 &RnpHeader::destination, &RnpHeader::hops);
 
-       
+        //  Return serializer
+        return ret;
+    }
 
-       
-    public:
-        RnpHeader();
-        RnpHeader(uint8_t packetSerivce, uint8_t packetType, uint16_t packetSize); // Initialise a packet
-        RnpHeader(const std::vector<uint8_t> &data); // Deserialization constructor
-        ~RnpHeader();
-        
-        /*
-            Serializes the header for network transport.
-        */
+public:
+    /**
+     * @brief Construct a new Header object
+     *
+     * @author Kiran de Silva
+     */
+    RnpHeader();
 
-        //todo implement serialize with offset
-        /**
-         * @brief Serializes header and places serialized daa at the end of the provided buffer
-         * 
-         * @param buf 
-         */
-        void serialize(std::vector<uint8_t>& buf) const;
+    /**
+     * @brief Construct a new Header object
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] packetService Service
+     * @param[in] packetType Type
+     * @param[in] packetSize Size
+     */
+    RnpHeader(const uint8_t packetService, const uint8_t packetType,
+              const uint16_t packetSize);
 
-        //header packet defintion
-        uint8_t start_byte = 0xAF; // Marks the begin of the header
-        uint16_t packet_len = 0x00; // packet length not including header length
-        uint16_t uid = 0x00000000; // unique id -> used for request response needs to be unique for source desintaiton pair
-        uint8_t source_service = 0x00; //source service id
-        uint8_t destination_service = 0x00; //service id
-        uint8_t type = 0x00; // Type of the packet
-        uint8_t source = 0x00; // Source interface ID for the packet
-        uint8_t destination = 0x00; // Destination interface ID for the packet
-        uint8_t hops = 0x00; // number of hops, increments each time the packet is sent
+    /**
+     * @brief Construct a new Header object
+     *
+     * Construct by deserializing existing packet
+     *
+     * @param[in] data Packet
+     */
+    RnpHeader(const std::vector<uint8_t> &data);
 
-        //non-serialized members
-        uint8_t src_iface;
-        std::variant<std::monostate,std::string> lladdress;
+    /**
+     * @brief Destroy the Header object
+     *
+     * @author Kiran de Silva
+     */
+    ~RnpHeader();
 
-        static constexpr size_t size(){
-                return getSerializer().member_size();
-        }
-        
-        static std::stringstream print(RnpHeader& header){
-            std::stringstream aout;
-            aout<< ">>>HEADER<<<\n";
-            aout<<  "start_byte: " << (int)header.start_byte << "\n";  
-            aout<<  "packet_len: " << (int)header.packet_len<< "\n"; 
-            aout<<  "uid: " << (int)header.uid<< "\n"; 
-            aout<<  "source_service: " << (int)header.source_service<< "\n"; 
-            aout<<  "destination_service: " << (int)header.destination_service<< "\n"; 
-            aout<<  "type: " << (int)header.type<< "\n"; 
-            aout<<  "source: " << (int)header.source<< "\n";
-            aout<<  "destination: " << (int)header.destination<< "\n"; 
-            aout<<  "hops: " << (int)header.hops<< "\n";
-            return aout;
-        }
+    /**
+     * @brief Serialize Header
+     *
+     * @todo Implement serialize with offset
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] buf Output buffer
+     */
+    void serialize(std::vector<uint8_t> &buf) const;
 
-        static void generateResponseHeader(const RnpHeader& requestHeader,RnpHeader& responseHeader){
-            responseHeader.uid = requestHeader.uid;
-            responseHeader.source_service = requestHeader.destination_service;
-            responseHeader.destination_service = requestHeader.source_service;
-            responseHeader.source = requestHeader.destination;
-            responseHeader.destination = requestHeader.source;
-        }
+    /// @brief Header start byte
+    uint8_t start_byte = 0xAF;
+
+    /// @brief Packet payload length
+    uint16_t packet_len = 0x00;
+
+    /// @brief Packet unique identifier
+    uint16_t uid = 0x00000000;
+
+    /// @brief Source service identifier
+    uint8_t source_service = 0x00;
+
+    /// @brief Destination service identifier
+    uint8_t destination_service = 0x00;
+
+    /// @brief Packet type
+    uint8_t type = 0x00;
+
+    /// @brief Packet source address
+    uint8_t source = 0x00;
+
+    /// @brief Packet destination address
+    uint8_t destination = 0x00;
+
+    /// @brief Number of hops (unused)
+    uint8_t hops = 0x00;
+
+    /// @brief Source interface
+    uint8_t src_iface;
+
+    /// @todo Document
+    std::variant<std::monostate, std::string> lladdress;
+
+    /**
+     * @brief Get size of Header
+     *
+     * @author Kiran de Silva
+     *
+     * @return constexpr size_t Header size
+     */
+    static constexpr size_t size() {
+        // Return header size
+        return getSerializer().member_size();
+    }
+
+    /**
+     * @brief Generate string stream from Header
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] header Header
+     * @return std::stringstream Header as string stream
+     */
+    static std::stringstream print(const RnpHeader &header) {
+        // Declare string stream
+        std::stringstream aout;
+
+        // Shift title to stream
+        aout << ">>>HEADER<<<\n";
+
+        // Shift header contents to stream
+        aout << "start_byte: " << (int)header.start_byte << "\n";
+        aout << "packet_len: " << (int)header.packet_len << "\n";
+        aout << "uid: " << (int)header.uid << "\n";
+        aout << "source_service: " << (int)header.source_service << "\n";
+        aout << "destination_service: " << (int)header.destination_service
+             << "\n";
+        aout << "type: " << (int)header.type << "\n";
+        aout << "source: " << (int)header.source << "\n";
+        aout << "destination: " << (int)header.destination << "\n";
+        aout << "hops: " << (int)header.hops << "\n";
+
+        // Return stream
+        return aout;
+    }
+
+    /**
+     * @brief Generate response Header
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] requestHeader Request header
+     * @param[out] responseHeader Response header
+     */
+    static void generateResponseHeader(const RnpHeader &requestHeader,
+                                       RnpHeader &responseHeader) {
+        // Copy unique identifier to response header
+        responseHeader.uid = requestHeader.uid;
+
+        // Switch source and destination addresses and services
+        responseHeader.source = requestHeader.destination;
+        responseHeader.source_service = requestHeader.destination_service;
+        responseHeader.destination = requestHeader.source;
+        responseHeader.destination_service = requestHeader.source_service;
+    }
 };
