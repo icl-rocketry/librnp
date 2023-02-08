@@ -110,7 +110,7 @@ public:
     /// @brief Source interface
     uint8_t src_iface;
 
-    /// @todo Document
+    /// @brief Link layer address
     std::variant<std::monostate, std::string> lladdress;
 
     /**
