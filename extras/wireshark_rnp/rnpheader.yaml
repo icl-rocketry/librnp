@@ -1,0 +1,78 @@
+connection:
+  type: udp
+  ports: [8000]
+protocol:
+  name: rnp
+fields:
+  - name: start_byte
+    type: uint8 
+    filter: rnp.header.start_byte
+    short_description: Start Byte
+    base: HEX
+    offset: 0
+    size: 1
+
+  - name: packet_len
+    type: uint16
+    filter: rnp.header.packet_len
+    short_description: Packet Length
+    base: DEC
+    offset: 1
+    size: 2
+
+  - name: uid
+    type: uint16
+    filter: rnp.header.uid
+    short_description: Unique Identifier
+    base: DEC
+    offset: 3
+    size: 2
+
+  - name: source_service
+    type: uint8
+    filter: rnp.header.source_service
+    short_description: Source Service
+    base: DEC
+    offset: 5
+    size: 1
+
+  - name: destination_service
+    type: uint8
+    filter: rnp.header.destination_service
+    short_description: Destination Service
+    base: DEC
+    offset: 6
+    size: 1
+
+  - name: type
+    type: uint8
+    filter: rnp.header.type
+    short_description: Packet Type
+    base: DEC
+    offset: 7
+    size: 1
+
+  - name: source
+    type: uint8
+    filter: rnp.header.source
+    short_description: Source Address
+    base: DEC
+    offset: 8
+    size: 1
+
+  - name: destination
+    type: uint8
+    filter: rnp.header.destination
+    short_description: Destination Address
+    base: DEC
+    offset: 9
+    size: 1
+
+  - name: hops
+    type: uint8
+    filter: rnp.header.hops
+    short_description: Hops
+    base: DEC
+    offset: 10
+    size: 1
+
