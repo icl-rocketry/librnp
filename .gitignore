@@ -1,1 +1,8 @@
+# Ignore build directory
+build
+
+# Ignore MacOS files
 .DS_Store
+
+# Ignore VSCode
+.vscode

@@ -1,30 +1,79 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <string>
-
+#include <vector>
 
 #include "rnp_interface.h"
 
-struct LoopbackInfo : public RnpInterfaceInfo{
-    // who knows what should go here
-};
+/**
+ * @brief Loopback Information structure
+ *
+ * @warning Empty structure
+ *
+ * @author Kiran de Silva
+ */
+struct LoopbackInfo : public RnpInterfaceInfo {};
 
-class Loopback : public RnpInterface{
-    public:
-        Loopback(std::string name = "loopback1");
+/**
+ * @brief Loopback class
+ *
+ * @author Kiran de Silva
+ */
+class Loopback : public RnpInterface {
+public:
+    /**
+     * @brief Construct a new Loopback object
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] name Loopback name
+     */
+    Loopback(const std::string name = "loopback1");
 
-        void setup() override;
-        void update() override;
+    /**
+     * @brief Set up Loopback
+     *
+     * @author Kiran de Silva
+     */
+    void setup() override;
 
-        void sendPacket(RnpPacket& data) override;
-        
-        const RnpInterfaceInfo* getInfo() override {return &info;};
+    /**
+     * @brief Update Loopback
+     *
+     * @author Kiran de Silva
+     */
+    void update() override;
 
-        ~Loopback(){};
+    /**
+     * @brief Send packet
+     *
+     * @author Kiran de Silva
+     *
+     * @param[in] data Packet
+     */
+    void sendPacket(RnpPacket &data) override;
 
-    private:
-        LoopbackInfo info;
-        
+    /**
+     * @brief Get Loopback information
+     *
+     * @author Kiran de Silva
+     *
+     * @return const RnpInterfaceInfo* Loopback information
+     */
+    const RnpInterfaceInfo *getInfo() override {
+        // Return Loopback information
+        return &info;
+    };
+
+    /**
+     * @brief Destroy the Loopback object
+     * 
+     * @author Kiran de Silva
+     */
+    ~Loopback(){};
+
+private:
+    /// @brief Loopback information
+    LoopbackInfo info;
 };
