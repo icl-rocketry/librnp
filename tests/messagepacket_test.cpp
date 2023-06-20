@@ -10,7 +10,7 @@
 
 #include <fstream>
 
-#include <rnp_networkmanager.h>
+#include <librnp/rnp_networkmanager.h>
 
 
 

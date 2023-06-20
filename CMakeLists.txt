@@ -1,8 +1,15 @@
 # Set minimum CMake version
 cmake_minimum_required(VERSION 3.16.3)
 
+if (ESP_PLATFORM)
+    idf_component_register(INCLUDE_DIRS src)
+    #link any ESP-IDF required libraries here
+    return()
+endif()
+
+
 # Declare project
-project(rnp LANGUAGES CXX)
+project(librnp LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)

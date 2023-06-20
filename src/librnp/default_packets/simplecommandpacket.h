@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "rnp_packet.h"
-#include "rnp_serializer.h"
+#include "../rnp_packet.h"
+#include "../rnp_serializer.h"
 
 /// @brief Command identifier type
 using command_t = uint8_t;

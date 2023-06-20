@@ -1,6 +1,12 @@
-# Collect source files
-file(GLOB_RECURSE rnp_src ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+cmake_minimum_required(VERSION 3.16.3)
 
-# Build library
-add_library(rnp STATIC ${rnp_src})
-target_include_directories(rnp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_library(librnp STATIC)
+
+#collect source files
+file(GLOB_RECURSE LIBRNP_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+target_sources(librnp PUBLIC ${LIBRNP_SRCS})
+
+#get include dcirectories relative to the current directory, i.e we have the prefix librnp/...
+target_include_directories(librnp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
