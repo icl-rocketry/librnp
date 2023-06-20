@@ -23,4 +23,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 add_subdirectory(src)
 
 # Add tests
-add_subdirectory(tests)
+option(TESTS "enable building of tests" OFF)
+if (TESTS)
+    add_subdirectory(tests)
+endif()
