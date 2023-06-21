@@ -16,6 +16,13 @@
 #include <Arduino.h>
 #endif
 
+#if defined(ESP32)
+#include <esp_app_format.h>
+#include <esp_ota_ops.h>
+
+
+#endif
+
 RnpNetworkManager::RnpNetworkManager(const uint8_t address,
                                      const NODETYPE nodeType,
                                      const bool enableLogging)
@@ -470,6 +477,7 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr) {
     switch (static_cast<NETMAN_TYPES>(packet_ptr->header.type)) {
     case NETMAN_TYPES::PING_REQ: { // Ping request
         // Deserialize packet
+        //uid is implicitly copied here
         PingPacket pong(*packet_ptr);
 
         // Swap destination and source addresses for response
@@ -483,7 +491,7 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr) {
 
         // Update source service
         pong.header.source_service = (uint8_t)DEFAULT_SERVICES::NETMAN;
-
+        
         // Send response
         sendPacket(pong);
 
@@ -576,6 +584,31 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr) {
     case NETMAN_TYPES::RESET_NETMAN: { // Reset network manager
         // Reset network manager
         reset();
+        break;
+    }
+    case NETMAN_TYPES::NODEINFO:{
+
+        std::stringstream info;
+
+        #ifdef ESP32
+            const esp_app_desc_t* appinfo = esp_ota_get_app_description();
+            info << "Name: " << appinfo->project_name << "\n" <<"Version: " << appinfo->version << "\n" << "Compile Date: " << appinfo->date << "\n" << "Compile Time: " << appinfo->time << "\n" << "IDF Ver: " << appinfo->idf_ver;
+        #else
+            info << "No Info!";
+        #endif
+
+        MessagePacket_Base<0,100> message(info.str());
+        
+        //Note this needsto be changed so it makes more sense
+        message.header.source_service = 1;
+        message.header.destination_service = packet_ptr->header.source_service;
+
+        message.header.source = getAddress();
+        message.header.destination = packet_ptr->header.source;
+        message.header.uid = packet_ptr->header.uid;
+
+        sendPacket(message);
+
         break;
     }
     default: {

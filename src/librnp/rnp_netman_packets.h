@@ -43,6 +43,9 @@ enum class NETMAN_TYPES : uint8_t {
     /// @brief Reset Network Manager configuration
     RESET_NETMAN = 9,
 
+    /// @brief Get Node info
+    NODEINFO = 254,
+
 };
 
 /**
