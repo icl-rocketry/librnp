@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <string>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -83,6 +84,19 @@ public:
         // Return the size of the element
         return size;
     }
+
+    /**
+     * @brief Convert element to a string
+     * 
+     * @param owner Reference to the container
+     * @param buffer Input buffer
+     */
+    void stringify(const C& owner, std::stringstream &buffer) const 
+    {
+        
+        buffer << std::to_string(owner.*ptr) << ',';
+    }
+
 };
 
 /**
@@ -173,6 +187,26 @@ public:
 
         // Return the serialized bytes
         return ret;
+    }
+
+    /**
+     * @brief Create string-based csv from member values
+     * 
+     * @param owner 
+     * @return std::string 
+     */
+    std::string stringify(const C& owner) const
+    {
+        std::stringstream ss; // output string stream
+
+        std::apply(        
+            [&](auto&&... args)   
+            {
+                (..., args.stringify(owner, ss)); //apply stringify on all elements
+            },
+                elements);
+
+        return ss.str(); // return string bytes
     }
 
     /**
