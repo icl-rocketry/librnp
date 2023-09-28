@@ -477,20 +477,15 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr) {
     switch (static_cast<NETMAN_TYPES>(packet_ptr->header.type)) {
     case NETMAN_TYPES::PING_REQ: { // Ping request
         // Deserialize packet
+        PingPacket ping(*packet_ptr);
         //uid is implicitly copied here
-        PingPacket pong(*packet_ptr);
+        PingPacket pong(ping.data);
 
-        // Swap destination and source addresses for response
-        std::swap(pong.header.destination, pong.header.source);
+        //generate response header (pong) based on request packet (ping)
+        RnpHeader::generateResponseHeader(ping.header,pong.header);
 
         // Set response type
         pong.header.type = (uint8_t)NETMAN_TYPES::PING_RES;
-
-        // Set response service to request service
-        pong.header.destination_service = pong.header.source_service;
-
-        // Update source service
-        pong.header.source_service = (uint8_t)DEFAULT_SERVICES::NETMAN;
         
         // Send response
         sendPacket(pong);
@@ -598,14 +593,8 @@ void RnpNetworkManager::NetManHandler(packetptr_t packet_ptr) {
         #endif
 
         MessagePacket_Base<0,100> message(info.str());
-        
-        //Note this needsto be changed so it makes more sense
-        message.header.source_service = 1;
-        message.header.destination_service = packet_ptr->header.source_service;
 
-        message.header.source = getAddress();
-        message.header.destination = packet_ptr->header.source;
-        message.header.uid = packet_ptr->header.uid;
+        RnpHeader::generateResponseHeader(packet_ptr->header,message.header);
 
         sendPacket(message);
 
