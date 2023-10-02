@@ -12,12 +12,16 @@
 #include "rnp_interface.h"
 #include "rnp_packet.h"
 #include "rnp_routingtable.h"
+#include "rnp_packetbufferinterface.h"
 
 /// @brief Packet pointer type
 using packetptr_t = std::unique_ptr<RnpPacketSerialized>;
 
 /// @brief Packet buffer type
 using packetBuffer_t = std::queue<packetptr_t>;
+
+/// @brief Packet Buffer Interface Type
+using packetBufferInterface_t = Rnp_PacketBufferInterface<packetBuffer_t>;
 
 /// @brief Packet callback handler type
 using PacketHandlerCb = std::function<void(packetptr_t)>;
@@ -144,7 +148,8 @@ public:
      */
     RnpNetworkManager(const uint8_t address = 0,
                       const NODETYPE nodeType = NODETYPE::LEAF,
-                      const bool enableLogging = false);
+                      const bool enableLogging = false,
+                      size_t maxBufferSize=50);
 
     /**
      * @brief Construct a new Rnp Network Manager object
@@ -155,7 +160,8 @@ public:
      * @param[in] enableLogging Logging flag (default: flase)
      */
     RnpNetworkManager(const RnpNetworkManagerConfig config,
-                      const bool enableLogging = false);
+                      const bool enableLogging = false,
+                      size_t maxBufferSize=50);
 
     /**
      * @brief Reconfigure newtork manager
@@ -461,6 +467,9 @@ private:
 
     /// @brief Packet buffer
     packetBuffer_t packetBuffer;
+
+    /// @brief Packet Buffer Interface
+    packetBufferInterface_t packetBufferInterface;
 
     /// @brief Service lookup
     std::vector<PacketHandlerCb> serviceLookup;

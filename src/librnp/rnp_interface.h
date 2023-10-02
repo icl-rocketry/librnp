@@ -120,7 +120,7 @@ public:
      *
      * @param[in] buffer Buffer
      */
-    void setPacketBuffer(packetBuffer_t *buffer) { _packetBuffer = buffer; };
+    void setPacketBuffer(packetBufferInterface_t *buffer) { _packetBuffer = buffer; };
 
     /**
      * @brief Get the Interface identifier
@@ -148,7 +148,7 @@ public:
 
 protected:
     /// @brief Packet buffer
-    packetBuffer_t *_packetBuffer;
+    packetBufferInterface_t *_packetBuffer;
 
     /// @brief Interface unique identifier
     const uint8_t _id;

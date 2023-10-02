@@ -11,6 +11,7 @@
 #include "rnp_netman_packets.h"
 #include "rnp_packet.h"
 #include "rnp_routingtable.h"
+#include "rnp_packetbufferinterface.h"
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -25,21 +26,18 @@
 
 RnpNetworkManager::RnpNetworkManager(const uint8_t address,
                                      const NODETYPE nodeType,
-                                     const bool enableLogging)
-    : serviceLookup(1),
-      _config({address, nodeType, NOROUTE_ACTION::DUMP, false}),
-      routingtable(1), _loggingEnabled(enableLogging) {
-    // Add loopback interface
-    addInterface(&lo);
-
-    // Generate default routes
-    generateDefaultRoutes();
-};
+                                     const bool enableLogging,
+                                     size_t maxBufferSize)
+    : RnpNetworkManager({address, nodeType, NOROUTE_ACTION::DUMP, false},enableLogging,maxBufferSize)
+    {};
 
 RnpNetworkManager::RnpNetworkManager(const RnpNetworkManagerConfig config,
-                                     const bool enableLogging)
-    : serviceLookup(1), _config(config), routingtable(1),
-      _loggingEnabled(enableLogging) {
+                                     const bool enableLogging,
+                                     size_t maxBufferSize)
+    : packetBufferInterface(packetBuffer,maxBufferSize),
+    serviceLookup(1), _config(config), routingtable(1),
+      _loggingEnabled(enableLogging)
+    {
 
     // Add loopback interface
     addInterface(&lo);
@@ -238,7 +236,7 @@ void RnpNetworkManager::addInterface(RnpInterface *iface) {
     ifaceList.at(ifaceID) = iface;
 
     // Set interface packet buffer
-    iface->setPacketBuffer(&packetBuffer);
+    iface->setPacketBuffer(&packetBufferInterface);
 };
 
 std::optional<RnpInterface *>
