@@ -7,10 +7,12 @@
 #include <vector>
 
 #include "rnp_packet.h"
+#include "rnp_packetbufferinterface.h"
 
 // copied from rnp_networkmanager
 using packetptr_t = std::unique_ptr<RnpPacketSerialized>;
 using packetBuffer_t = std::queue<packetptr_t>;
+using packetBufferInterface_t = Rnp_PacketBufferInterface<packetptr_t>;
 
 /**
  * @brief Enumerate for default interfaces

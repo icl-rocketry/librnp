@@ -21,7 +21,7 @@ using packetptr_t = std::unique_ptr<RnpPacketSerialized>;
 using packetBuffer_t = std::queue<packetptr_t>;
 
 /// @brief Packet Buffer Interface Type
-using packetBufferInterface_t = Rnp_PacketBufferInterface<packetBuffer_t>;
+using packetBufferInterface_t = Rnp_PacketBufferInterface<packetptr_t>;
 
 /// @brief Packet callback handler type
 using PacketHandlerCb = std::function<void(packetptr_t)>;
@@ -149,7 +149,7 @@ public:
     RnpNetworkManager(const uint8_t address = 0,
                       const NODETYPE nodeType = NODETYPE::LEAF,
                       const bool enableLogging = false,
-                      size_t maxBufferSize=50);
+                      const size_t maxBufferSize=200);
 
     /**
      * @brief Construct a new Rnp Network Manager object
@@ -161,7 +161,7 @@ public:
      */
     RnpNetworkManager(const RnpNetworkManagerConfig config,
                       const bool enableLogging = false,
-                      size_t maxBufferSize=50);
+                      const size_t maxBufferSize=200);
 
     /**
      * @brief Reconfigure newtork manager

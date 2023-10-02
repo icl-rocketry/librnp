@@ -3,12 +3,18 @@
 #include <queue>
 #include <utility>
 
-template<typename T>
+template<typename ELEMENT_T>
 class Rnp_PacketBufferInterface
 {
     public:
 
-        Rnp_PacketBufferInterface(std::queue<T>& underlyingQueue,size_t queueMaxSize):
+        /**
+         * @brief Construct a new Rnp_PacketBufferInterface object
+         * 
+         * @param underlyingQueue reference to underlying queue
+         * @param queueMaxSize maxmiuym allowable queue size, if zero, queue is unbounded
+         */
+        Rnp_PacketBufferInterface(std::queue<ELEMENT_T>& underlyingQueue,const size_t queueMaxSize):
         _underlyingQueue(underlyingQueue),
         _queueMaxSize(queueMaxSize)
         {};
@@ -20,18 +26,23 @@ class Rnp_PacketBufferInterface
          * @return true 
          * @return false 
          */
+        template<typename T>
         bool push(T&& arg)
         {
-            if (_underlyingQueue.size() == _queueMaxSize)
+            if (_queueMaxSize)
             {
-                return false;
+                if (_underlyingQueue.size() == _queueMaxSize)
+                {
+                    return false;
+                }
             }
             _underlyingQueue.push(std::forward<T>(arg));
             return true;
         };
 
+
     private:
-        std::queue<T>& _underlyingQueue;
+        std::queue<ELEMENT_T>& _underlyingQueue;
 
         const size_t _queueMaxSize;
 
