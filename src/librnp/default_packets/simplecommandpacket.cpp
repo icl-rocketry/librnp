@@ -6,7 +6,7 @@
 SimpleCommandPacket::~SimpleCommandPacket(){};
 
 SimpleCommandPacket::SimpleCommandPacket(const uint8_t _command,
-                                         const uint32_t _arg)
+                                         const int32_t _arg)
     : RnpPacket(0, 0, size()), command(_command), arg(_arg){};
 
 SimpleCommandPacket::SimpleCommandPacket(const RnpPacketSerialized &packet)

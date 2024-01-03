@@ -58,7 +58,7 @@ public:
      * @param[in] command Command
      * @param[in] arg Command argument
      */
-    SimpleCommandPacket(const uint8_t command, const uint32_t arg);
+    SimpleCommandPacket(const uint8_t command, const int32_t arg);
 
     /**
      * @brief Deserialize Command Packet from serialized data
@@ -82,7 +82,7 @@ public:
     command_t command;
 
     /// @brief Command Argument
-    uint32_t arg;
+    int32_t arg;
 
     /**
      * @brief Get command packet size
