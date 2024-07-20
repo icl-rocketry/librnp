@@ -136,6 +136,13 @@ class RnpNetworkManager {
 
 public:
     /**
+     * @brief Corresponds to the start byte in the header, this is the current RnpVersionID.
+     * 
+     */
+    static constexpr uint8_t RnpVersionID = 0xAF;
+
+public:
+    /**
      * @brief Construct a new Rnp Network Manager object
      *
      * Default constructor with default settings

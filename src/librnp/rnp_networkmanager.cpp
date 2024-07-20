@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -652,8 +653,17 @@ void RnpNetworkManager::log(const std::string &msg) {
 bool RnpNetworkManager::validPacket(const RnpPacket& packet)
 {
     // verify expected protocl
-    if (packet.header.start_byte != 0xAF)
+    if (packet.header.start_byte != RnpVersionID)
     {
+        std::stringstream logstring; 
+        logstring << "[E] header protocol mismatch, expected: 0x" 
+                  << std::hex << static_cast<int>(RnpVersionID) 
+                  << ", decoded: 0x" 
+                  << std::hex << static_cast<int>(packet.header.start_byte)
+                  << "!";
+
+        log(logstring.str());
+
         return false;
     }
 
@@ -661,6 +671,7 @@ bool RnpNetworkManager::validPacket(const RnpPacket& packet)
     if (packet.header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::NOADDRESS) && 
         packet.header.destination == static_cast<uint8_t>(DEFAULT_ADDRESS::NOADDRESS) )
     {
+        log("[E] Invalid addressing, both source and destination is 0!");
         return false;
     }
     
