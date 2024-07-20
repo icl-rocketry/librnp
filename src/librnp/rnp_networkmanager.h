@@ -80,12 +80,12 @@ enum class DEFAULT_SERVICES : uint8_t {
     /**
      * @brief No service
      *
-     * Reserved for 'special' uses. On the ground station, nodes on RNP can send
-     * packets to the the command service on the groundstation without being
-     * forwarded to connected IP clients. NOSERVICE on a node which is a hub
-     * also allows packets to be forwarded to the debug interface allowing the
-     * debug interface to communicate to any node on the network. This only
-     * happens if the packet is addressed to a node.
+     * !Reserved for 'special' uses. On the ground station, nodes on RNP can send
+     * !packets to the the command service on the groundstation without being
+     * !forwarded to connected IP clients. NOSERVICE on a node which is a hub
+     * !also allows packets to be forwarded to the debug interface allowing the
+     * !debug interface to communicate to any node on the network. This only
+     * !happens if the packet is addressed to a node.
      */
     NOSERVICE = 0,
 
@@ -464,6 +464,17 @@ private:
      * @param[in] packet_ptr Pointer to packet
      */
     void NetManHandler(packetptr_t packet_ptr);
+
+    /**
+     * @brief Checks if the packet recieved is a valid rnp packet. Checks start byte for
+     *      declared protocol (0xAF) and ensures addressing is valid.
+     * ? should this log errors???
+     * 
+     * @param packet 
+     * 
+     * @return returns true if valid
+     */
+    bool validPacket(const RnpPacket& packet);
 
     /// @brief Packet buffer
     packetBuffer_t packetBuffer;

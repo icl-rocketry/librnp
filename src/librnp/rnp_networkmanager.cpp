@@ -384,6 +384,12 @@ void RnpNetworkManager::routePackets() {
     // Remove packet from the top of the buffer
     packetBuffer.pop();
 
+    //check if packet is a valid RNP packet , dump it if not
+    if ( !validPacket(*packet_ptr) )
+    {
+        return;
+    }
+
     // Check if automatic route generation is enabled
     if (_config.routeGenEnabled) {
         // Get the route to the source node
@@ -640,4 +646,24 @@ void RnpNetworkManager::log(const std::string &msg) {
 
     // Log via the logging callback
     _logcb(msg);
+};
+
+
+bool RnpNetworkManager::validPacket(const RnpPacket& packet)
+{
+    // verify expected protocl
+    if (packet.header.start_byte != 0xAF)
+    {
+        return false;
+    }
+
+    //verify source and destination address make sense
+    if (packet.header.source == static_cast<uint8_t>(DEFAULT_ADDRESS::NOADDRESS) && 
+        packet.header.destination == static_cast<uint8_t>(DEFAULT_ADDRESS::NOADDRESS) )
+    {
+        return false;
+    }
+    
+
+    return true;
 };

@@ -80,7 +80,7 @@ public:
      */
     void serialize(std::vector<uint8_t> &buf) const;
 
-    /// @brief Header start byte
+    /// @brief Header start byte. Indicates the expected protocol. 0xAF is RNP
     uint8_t start_byte = 0xAF;
 
     /// @brief Packet payload length
