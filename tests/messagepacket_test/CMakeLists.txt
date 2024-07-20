@@ -11,9 +11,6 @@ add_compile_options(-Wpedantic)
 
 
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../.. ${CMAKE_CURRENT_SOURCE_DIR}/../../build)
-
-
 
 # add_executable(libriccore_fsm_test ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${LIBRNP_SRC})
 add_executable(messagepacket_test ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)

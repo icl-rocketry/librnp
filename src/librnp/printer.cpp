@@ -28,6 +28,7 @@ void Printer::sendPacket(RnpPacket &data) {
     // Declare string stream
     std::stringstream aout;
 
+    aout << "Interface:" << _name << "\n";
     // Shift title into stream
     aout << "Packet:\n";
 
