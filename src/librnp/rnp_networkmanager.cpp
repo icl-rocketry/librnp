@@ -355,6 +355,11 @@ void RnpNetworkManager::unregisterService(const uint8_t serviceID) {
     }
 }
 
+void RnpNetworkManager::registerPacketCapture(PacketCaptureHandlerCb packetCaptureCallback) {
+    // Add callback to vector
+    packetCaptureCallbacks.push_back(packetCaptureCallback);
+}
+
 void RnpNetworkManager::setNoRouteAction(const NOROUTE_ACTION action,
                                          const std::vector<uint8_t> ifaces) {
     // Set the no route action
@@ -389,6 +394,11 @@ void RnpNetworkManager::routePackets() {
     if ( !validPacket(*packet_ptr) )
     {
         return;
+    }
+
+    // Send packet to capture callbacks
+    for (PacketCaptureHandlerCb packetCapture : packetCaptureCallbacks) {
+        packetCapture(*packet_ptr);
     }
 
     // Check if automatic route generation is enabled

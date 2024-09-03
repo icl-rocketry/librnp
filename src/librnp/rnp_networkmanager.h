@@ -26,6 +26,9 @@ using packetBufferInterface_t = Rnp_PacketBufferInterface<packetptr_t>;
 /// @brief Packet callback handler type
 using PacketHandlerCb = std::function<void(packetptr_t)>;
 
+/// @brief Packet capture callback handler type
+using PacketCaptureHandlerCb = std::function<void(RnpPacket &)>;
+
 /// @brief Logging callback type
 using LogCb_t = std::function<void(const std::string &)>;
 
@@ -375,6 +378,15 @@ public:
     void unregisterService(const uint8_t serviceID);
 
     /**
+     * @brief Register a packet capture handler.
+     * 
+     * @author Max Hallgarten La Casta
+     * 
+     * @param[in] packetCaptureCallback Callback handler
+     */
+    void registerPacketCapture(PacketCaptureHandlerCb packetCaptureCallback);
+
+    /**
      * @brief Pass a logging callback to allow logging of errors from the
      * network manager.
      *
@@ -488,6 +500,9 @@ private:
 
     /// @brief Packet Buffer Interface
     packetBufferInterface_t packetBufferInterface;
+
+    /// @brief Packet capture callbacks
+    std::vector<PacketCaptureHandlerCb> packetCaptureCallbacks;
 
     /// @brief Service lookup
     std::vector<PacketHandlerCb> serviceLookup;
