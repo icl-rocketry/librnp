@@ -1,8 +1,11 @@
 # Ignore build directory
 build
+bin
+lib
 
 # Ignore MacOS files
 .DS_Store
 
 # Ignore VSCode
 .vscode
+
