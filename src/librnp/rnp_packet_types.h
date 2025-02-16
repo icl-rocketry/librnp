@@ -1,12 +1,6 @@
 #pragma once
 
-#include "rnp_header.h"
-#include "rnp_networkmanager.h"
-#include "rnp_packet.h"
-#include "rnp_routingtable.h"
-#include "rnp_serializer.h"
-
-#include <array>
+#include <stdint.h>
 
 /**
  * @brief Enumerate for Network Manager Types
