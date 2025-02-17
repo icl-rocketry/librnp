@@ -5,8 +5,6 @@
 /**
  * @brief Enumerate for Network Manager Types
  *
- * @todo Save and Reset may benefit from a security key
- *
  * @author Andrei Paduraru
  */
 enum class RNP_TYPES : uint8_t {
@@ -39,6 +37,12 @@ enum class RNP_TYPES : uint8_t {
 
     /// @brief Network Manager - Reset Network Manager configuration
     RESET_NETMAN = 9,
+
+    /// @brief Kermit - Processed sensor packet.
+    KERMIT_PROCESSED = 103,
+
+    /// @brief Kermit - Raw ADC packet.
+    KERMIT_PROCESSED = 104,
 
     /// @brief Network Manager - Get Node info
     NODEINFO = 254,
