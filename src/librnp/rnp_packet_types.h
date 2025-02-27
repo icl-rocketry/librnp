@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 /**
- * @brief Enumerate for Network Manager Types
+ * @brief Enumerate for keeping track of RNP packet types
  *
  * @author Andrei Paduraru
  */
@@ -42,7 +42,7 @@ enum class RNP_TYPES : uint8_t {
     KERMIT_PROCESSED = 103,
 
     /// @brief Kermit - Raw ADC packet.
-    KERMIT_PROCESSED = 104,
+    KERMIT_RAW = 104,
 
     /// @brief Network Manager - Get Node info
     NODEINFO = 254,
