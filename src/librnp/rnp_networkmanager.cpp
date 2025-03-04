@@ -101,6 +101,11 @@ void RnpNetworkManager::sendPacket(RnpPacket &packet) {
     // Increment the number of hops of the packet
     packet.header.hops += 1;
 
+    // Send packet to capture callbacks
+    for (PacketCaptureHandlerCb packetCapture : packetCaptureCallbacks) {
+        packetCapture(packet);
+    }
+
     // Extract the destination from the packet header
     uint8_t destination = packet.header.destination;
 
