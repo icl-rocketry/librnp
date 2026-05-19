@@ -288,7 +288,7 @@ void RnpNetworkManager::removeInterface(const uint8_t ifaceID) {
     // Erase the last element from the interface list if the index is the final
     // element in the vector
     if (ifaceID == ifaceList.size() - 1) {
-        ifaceList.erase(ifaceList.end());
+        ifaceList.pop_back();
     }
 };
 
@@ -356,7 +356,7 @@ void RnpNetworkManager::unregisterService(const uint8_t serviceID) {
     // Erase the last element from the service list if the index is the final
     // element in the vector
     if (serviceID == serviceLookup.size() - 1) {
-        serviceLookup.erase(serviceLookup.end());
+        serviceLookup.pop_back();
     }
 }
 
