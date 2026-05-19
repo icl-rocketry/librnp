@@ -117,7 +117,7 @@ void RnpNetworkManager::sendPacket(RnpPacket &packet) {
         // Check the no route action
         switch (_config.noRouteAction) {
         case NOROUTE_ACTION::DUMP: { // Dump the packet
-            return;
+            break;
         }
         case NOROUTE_ACTION::BROADCAST: { // Broadcast the packet
             // Function for broadcast the packet on a given interface
@@ -148,6 +148,7 @@ void RnpNetworkManager::sendPacket(RnpPacket &packet) {
                     broadcastPacket(ifaceID);
                 }
             }
+            break;
         }
         default: { // Dump the packet
             return;
