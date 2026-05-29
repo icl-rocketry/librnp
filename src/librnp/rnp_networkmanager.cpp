@@ -403,7 +403,6 @@ void RnpNetworkManager::routePackets() {
 
     // Send packet to capture callbacks
     for (PacketCaptureHandlerCb packetCapture : packetCaptureCallbacks) {
-		log("looping through packet handler callbacks");
         packetCapture(*packet_ptr);
     }
 
